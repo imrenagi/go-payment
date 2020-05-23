@@ -6,7 +6,8 @@ import (
 	"github.com/imrenagi/go-payment"
 )
 
-// NonCard is base for payment method other than cc
+// NonCard represent the configuration for non cards payment (ewallet, retail outlet, cardless credit,
+// virtual account).
 type NonCard struct {
 	PaymentType payment.PaymentType `yaml:"payment_type" json:"payment_type"`
 	IconURLs    []string            `yaml:"icon_urls" json:"icon_urls"`
@@ -16,10 +17,12 @@ type NonCard struct {
 	WaitingTime *waitingTime        `yaml:"waiting_time" json:"-"`
 }
 
+// GetGateway returns the payment gateway used for this payment methods
 func (p *NonCard) GetGateway() payment.Gateway {
 	return p.Gateway
 }
 
+// GetAdminFeeConfig returns the fee configuration for a given currency.
 func (p *NonCard) GetAdminFeeConfig(currency string) *Fee {
 	if f, ok := p.AdminFee[currency]; ok {
 		return &f
@@ -27,10 +30,14 @@ func (p *NonCard) GetAdminFeeConfig(currency string) *Fee {
 	return nil
 }
 
+// GetInstallmentFeeConfig returns nil since the non card payment method doesn't
+// has installment feature
 func (p *NonCard) GetInstallmentFeeConfig(currency string) *Fee {
 	return nil
 }
 
+// GetPaymentWaitingTime is the max waiting time for payment completion after
+// customer initiate the payment
 func (p *NonCard) GetPaymentWaitingTime() *time.Duration {
 	var dur time.Duration
 

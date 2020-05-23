@@ -7,6 +7,8 @@ import (
 	"github.com/imrenagi/go-payment"
 )
 
+// waitingTime represent the time duration with a time unit (minute, hour, day, second). This used
+// for interpreting the waiting time from the payment configuration file.
 type waitingTime struct {
 	Duration int      `yaml:"duration"`
 	Unit     timeUnit `yaml:"unit"`
