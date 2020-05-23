@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - "1.8.x"
+  - "1.9.x"
+  - "1.10.x"
+
+script: 
+  - go test ./...
+  - go build -i example/simplepay/main.go example/simplepay/template_handler.go
