@@ -10,6 +10,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
+func NewMidtransTransactionRepository(db *gorm.DB) *MidtransTransactionRepository {
+	return &MidtransTransactionRepository{
+		DB: db,
+	}
+}
+
 type MidtransTransactionRepository struct {
 	DB *gorm.DB
 }

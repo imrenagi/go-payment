@@ -95,6 +95,7 @@ type InvoicePaymentStatus struct {
 	Currency               string  `json:"currency"`
 	PaymentChannel         string  `json:"payment_channel"`
 	PaymentDestination     string  `json:"payment_destination"`
+	CallbackAuthToken      string  `json:"-"`
 }
 
 // IsValid always returns no error at least for now since

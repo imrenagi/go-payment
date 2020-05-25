@@ -55,7 +55,7 @@ type LineItem struct {
 	payment.Model
 	InvoiceID    uint64  `json:"-" gorm:"index:line_item_invoice_id_k"`
 	Name         string  `json:"name"`
-	Description  string  `json:"description"`
+	Description  string  `json:"description" gorm:"not null;type:text"`
 	Category     string  `json:"category"`
 	MerchantName string  `json:"merchant_name"`
 	Currency     string  `json:"currency"`

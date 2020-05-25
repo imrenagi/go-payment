@@ -96,7 +96,7 @@ func (m *Manager) ProcessOVOCallback(ctx context.Context, ops *xendit.OVOPayment
 		if _, err := m.FailInvoice(ctx, &FailInvoiceRequest{
 			InvoiceNumber: inv.Number,
 			TransactionID: ops.ExternalID,
-			Reason:        ops.Status,
+			Reason:        ops.FailureCode,
 		}); err != nil {
 			return err
 		}

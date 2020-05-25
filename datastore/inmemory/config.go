@@ -12,7 +12,7 @@ import (
 
 func NewPaymentConfigRepository() *PaymentConfigRepository {
 
-	var path string = "payment-methods.yml"
+	var path string = "config/payment-methods.yml"
 	// configFolderPath := os.Getenv("PAYMENT_CONFIG_DIR")
 	// if configFolderPath == "" {
 	// 	path = "internal/payment/config/payment-methods.yml"

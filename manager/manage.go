@@ -78,3 +78,10 @@ type XenditProcessor interface {
 type MidtransProcessor interface {
 	ProcessMidtransCallback(ctx context.Context, mr mgo.Response) error
 }
+
+// Payment combines all interface used for payment manager
+type Payment interface {
+	Interface
+	XenditProcessor
+	MidtransProcessor
+}
