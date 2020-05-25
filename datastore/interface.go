@@ -3,6 +3,8 @@ package datastore
 import (
 	"context"
 
+	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/config"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/invoice"
 )
@@ -18,4 +20,10 @@ type MidtransTransactionStatusRepository interface {
 type InvoiceRepository interface {
 	FindByNumber(ctx context.Context, number string) (*invoice.Invoice, error)
 	Save(ctx context.Context, invoice *invoice.Invoice) error
+}
+
+// PaymentConfigReader is interface for reading payment configuration
+type PaymentConfigReader interface {
+	FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error)
+	FindAll(ctx context.Context) (*config.PaymentConfig, error)
 }

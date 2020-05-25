@@ -10,19 +10,13 @@ import (
 	"github.com/imrenagi/go-payment/config"
 )
 
-func NewPaymentConfigRepository() *PaymentConfigRepository {
+// NewPaymentConfigRepository creates payment configuration data source by reading
+// a file located on `source`
+func NewPaymentConfigRepository(source string) *PaymentConfigRepository {
 
-	var path string = "config/payment-methods.yml"
-	// configFolderPath := os.Getenv("PAYMENT_CONFIG_DIR")
-	// if configFolderPath == "" {
-	// 	path = "internal/payment/config/payment-methods.yml"
-	// } else {
-	// 	path = fmt.Sprintf("%s/payment-methods.yml", configFolderPath)
-	// }
-
-	data, err := ioutil.ReadFile(path)
+	data, err := ioutil.ReadFile(source)
 	if err != nil {
-		log.Fatalf("Error loading creds from path %s : %v", path, err)
+		log.Fatalf("Error loading creds from path %s : %v", source, err)
 		return nil
 	}
 
@@ -46,8 +40,7 @@ type PaymentConfigRepository struct {
 // FindByPaymentType return FeeConfigReader for a given payment type. If it is a credit card,
 // credit card option will be check to get the type of installment, term and its aqcuiring bank.
 // Otherwise 0 month installment offline from BCA will be used.
-func (r PaymentConfigRepository) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType,
-	opts ...payment.Option) (config.FeeConfigReader, error) {
+func (r PaymentConfigRepository) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error) {
 
 	options := payment.Options{
 		CreditCard: &payment.CreditCard{

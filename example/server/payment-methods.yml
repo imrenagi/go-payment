@@ -32,7 +32,7 @@ card_payment:
             IDR:
               val_percentage: 9
               val_currency: 2200
-              currency: "IDR"                              
+              currency: "IDR"                                          
 bank_transfers:
   - gateway: midtrans
     payment_type: "bca_va"

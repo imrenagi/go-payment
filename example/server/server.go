@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/imrenagi/go-payment/datastore/inmemory"
 	dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/invoice"
@@ -32,12 +33,10 @@ func main() {
 		&invoice.BillingAddress{},
 	)
 
-	midTrxRepo := dsmysql.NewMidtransTransactionRepository(db)
-	invoiceRepo := dsmysql.NewInvoiceRepository(db)
-
-	m := manage.NewDefaultManager(secret.Payment)
-	m.MustMidtransTransactionStatusRepository(midTrxRepo)
-	m.MustInvoiceRepository(invoiceRepo)
+	m := manage.NewManager(secret.Payment)
+	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
+	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
+	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yml"))
 
 	srv := srv{
 		Router:     mux.NewRouter(),

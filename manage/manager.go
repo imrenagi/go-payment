@@ -5,9 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/imrenagi/go-payment/config"
-	"github.com/imrenagi/go-payment/datastore/inmemory"
-
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/datastore"
 	midgateway "github.com/imrenagi/go-payment/gateway/midtrans"
@@ -18,17 +15,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// NewDefaultManager create use default properties for a manager instance
-func NewDefaultManager(
-	secret localconfig.PaymentSecret,
-) *Manager {
-	m := NewManager(secret)
-	// default implementation
-	m.paymentConfigRepository = inmemory.NewPaymentConfigRepository()
-
-	return m
-}
-
 // NewManager creates a new payment manager
 func NewManager(
 	secret localconfig.PaymentSecret,
@@ -36,14 +22,7 @@ func NewManager(
 	return &Manager{
 		xenditGateway:   xengateway.NewGateway(secret.Xendit),
 		midtransGateway: midgateway.NewGateway(secret.Midtrans),
-
-		// invoiceRepository:        mysql.NewInvoiceRepository(db),
 	}
-}
-
-type paymentConfigRepository interface {
-	FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error)
-	FindAll(ctx context.Context) (*config.PaymentConfig, error)
 }
 
 // Manager handle business logic related to payment gateway
@@ -52,7 +31,7 @@ type Manager struct {
 	midtransGateway          *midgateway.Gateway
 	midTransactionRepository datastore.MidtransTransactionStatusRepository
 	invoiceRepository        datastore.InvoiceRepository
-	paymentConfigRepository  paymentConfigRepository
+	paymentConfigRepository  datastore.PaymentConfigReader
 }
 
 // MapMidtransTransactionStatusRepository mapping the midtrans transaction status repository
@@ -69,12 +48,20 @@ func (m *Manager) MustMidtransTransactionStatusRepository(repo datastore.Midtran
 	m.midTransactionRepository = repo
 }
 
-// MustInvoiceRepository mapping the invoice repository
+// MustInvoiceRepository mandatory mapping the invoice repository
 func (m *Manager) MustInvoiceRepository(repo datastore.InvoiceRepository) {
 	if repo == nil {
 		panic(fmt.Errorf("invoice repository can't be nil"))
 	}
 	m.invoiceRepository = repo
+}
+
+// MustPaymentConfigReader mandatory mapping for payment config repository
+func (m *Manager) MustPaymentConfigReader(repo datastore.PaymentConfigReader) {
+	if repo == nil {
+		panic(fmt.Errorf("invoice repository can't be nil"))
+	}
+	m.paymentConfigRepository = repo
 }
 
 func (m Manager) charger(inv *invoice.Invoice) invoice.PaymentCharger {
