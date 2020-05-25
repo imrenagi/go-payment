@@ -10,7 +10,7 @@ import (
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
-	"github.com/imrenagi/go-payment/manager"
+	"github.com/imrenagi/go-payment/manage"
 	"github.com/jinzhu/gorm"
 	mgo "github.com/veritrans/go-midtrans"
 )
@@ -26,15 +26,15 @@ func migrate(db *gorm.DB) {
 	)
 }
 
-func NewServer(manager manager.Payment) *Server {
+func NewServer(m manage.Payment) *Server {
 	return &Server{
-		Manager: manager,
+		Manager: m,
 	}
 }
 
 // Server payment server struct
 type Server struct {
-	Manager manager.Payment
+	Manager manage.Payment
 }
 
 // GetInvoiceRequestHandler returns handler func that will return invoice with given invoice number
@@ -77,7 +77,7 @@ func (s Server) xenditCallbackToken(r *http.Request) (string, error) {
 // CreateInvoiceHandler handles request for creating the invoice
 func (s Server) CreateInvoiceHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req manager.GenerateInvoiceRequest
+		var req manage.GenerateInvoiceRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			WriteFailResponse(w, http.StatusBadRequest, Error{StatusCode: http.StatusBadRequest, Message: err.Error()})

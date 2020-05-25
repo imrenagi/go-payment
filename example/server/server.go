@@ -7,7 +7,7 @@ import (
 	dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/invoice"
-	"github.com/imrenagi/go-payment/manager"
+	"github.com/imrenagi/go-payment/manage"
 	"github.com/imrenagi/go-payment/server"
 	"github.com/imrenagi/go-payment/util/db/mysql"
 	"github.com/imrenagi/go-payment/util/localconfig"
@@ -35,7 +35,7 @@ func main() {
 	midTrxRepo := dsmysql.NewMidtransTransactionRepository(db)
 	invoiceRepo := dsmysql.NewInvoiceRepository(db)
 
-	m := manager.NewDefaultManager(secret.Payment)
+	m := manage.NewDefaultManager(secret.Payment)
 	m.MustMidtransTransactionStatusRepository(midTrxRepo)
 	m.MustInvoiceRepository(invoiceRepo)
 

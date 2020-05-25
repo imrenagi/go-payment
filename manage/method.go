@@ -1,4 +1,4 @@
-package manager
+package manage
 
 import (
 	"github.com/imrenagi/go-payment"
