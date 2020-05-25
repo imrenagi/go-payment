@@ -1,11 +1,15 @@
 package invoice
 
-import "context"
+import (
+	"context"
+
+	"github.com/imrenagi/go-payment"
+)
 
 // PaymentCharger will call the API
 type PaymentCharger interface {
 	Create(ctx context.Context, inv *Invoice) (*ChargeResponse, error)
-	Gateway() string
+	Gateway() payment.Gateway
 }
 
 // ChargeResponse stores the important data after a payment charge request

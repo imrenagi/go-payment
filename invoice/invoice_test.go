@@ -83,7 +83,7 @@ func TestInvoice_Clear(t *testing.T) {
 	assert.Nil(t, i.Payment)
 }
 
-func TestInvoice_SetBillingAddress(t *testing.T) {
+func TestInvoice_UpsertBillingAddress(t *testing.T) {
 
 	t.Run("should create new billing address", func(t *testing.T) {
 		i := emptyInvoice()
@@ -95,7 +95,7 @@ func TestInvoice_SetBillingAddress(t *testing.T) {
 
 		assert.NotNil(t, i.BillingAddress)
 
-		i.SetBillingAddress("Foo", "foo@bar.com", "08123")
+		i.UpsertBillingAddress("Foo", "foo@bar.com", "08123")
 
 		assert.Equal(t, "Foo", i.BillingAddress.FullName)
 		assert.Equal(t, "foo@bar.com", i.BillingAddress.Email)
@@ -106,7 +106,7 @@ func TestInvoice_SetBillingAddress(t *testing.T) {
 		i := emptyInvoice()
 		assert.Nil(t, i.BillingAddress)
 
-		i.SetBillingAddress("Foo", "foo@bar.com", "08123")
+		i.UpsertBillingAddress("Foo", "foo@bar.com", "08123")
 
 		assert.Equal(t, "Foo", i.BillingAddress.FullName)
 		assert.Equal(t, "foo@bar.com", i.BillingAddress.Email)
@@ -115,9 +115,9 @@ func TestInvoice_SetBillingAddress(t *testing.T) {
 
 }
 
-func TestInvoice_SetPaymentMethod(t *testing.T) {
+func TestInvoice_UpdatePaymentMethod(t *testing.T) {
 	i := emptyInvoice()
-	i.SetPaymentMethod(&Payment{
+	i.UpdatePaymentMethod(&Payment{
 		PaymentType: payment.SourceBNIVA,
 	})
 	assert.NotNil(t, i.Payment)
@@ -141,7 +141,7 @@ func (m *mockFeeReader) GetPaymentWaitingTime() *time.Duration {
 }
 
 func (m *mockFeeReader) GetGateway() payment.Gateway {
-	return payment.Midtrans
+	return payment.GatewayMidtrans
 }
 
 type mockPaymentMethodFinder struct {
@@ -150,7 +150,7 @@ type mockPaymentMethodFinder struct {
 	Error          error
 }
 
-func (f mockPaymentMethodFinder) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.PaymentOption) (config.FeeConfigReader, error) {
+func (f mockPaymentMethodFinder) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error) {
 	if f.Error != nil {
 		return nil, f.Error
 	}
@@ -194,7 +194,7 @@ func TestInvoice_UpdateFee(t *testing.T) {
 		}
 
 		i := emptyInvoice()
-		i.SetPaymentMethod(&Payment{
+		i.UpdatePaymentMethod(&Payment{
 			PaymentType: payment.SourceBNIVA,
 		})
 
@@ -251,7 +251,7 @@ func TestInvoice_Publish(t *testing.T) {
 
 	t.Run("can't published because billing address is not set", func(t *testing.T) {
 		i := emptyInvoice()
-		i.SetPaymentMethod(&Payment{
+		i.UpdatePaymentMethod(&Payment{
 			PaymentType: payment.SourceBNIVA,
 		})
 		err := i.Publish(context.TODO())

@@ -9,17 +9,7 @@ import (
 	"github.com/imrenagi/go-payment"
 )
 
-type CardToken struct {
-	payment.Model
-	UserID   string `json:"user_id" gorm:"index:user_id_tokencc_k;not null"`
-	CardHash string `json:"card_hash" gorm:"not null"`
-	TokenID  string `json:"token_id" gorm:"not null"`
-}
-
-func (CardToken) TableName() string {
-	return "midtrans_token"
-}
-
+// TransactionStatus is object used to store notification from midtrans
 type TransactionStatus struct {
 	ID                     uint64    `json:"id" gorm:"primary_key"`
 	CreatedAt              time.Time `json:"created_at" gorm:"not null;default:CURRENT_TIMESTAMP"`
@@ -43,16 +33,16 @@ type TransactionStatus struct {
 	ApprovalCode           string    `json:"approval_code"`
 }
 
+// TableName returns the gorm table name
 func (TransactionStatus) TableName() string {
 	return "midtrans_transaction_status"
 }
 
-func (m TransactionStatus) IsSuccess() bool {
-	return m.StatusCode == "200" && m.TransactionStatus == "capture" && m.FraudStatus == "accept"
-}
-
-func (m TransactionStatus) HasValidSignKey(serverKey string) error {
-	key := fmt.Sprintf("%s%s%s%s", m.OrderID, m.StatusCode, m.GrossAmount, serverKey)
+// IsValid checks whether the status sent is indeed sent by midtrans by validating the
+// data against its authentication key.
+// See https://snap-docs.midtrans.com/#handling-notifications
+func (m TransactionStatus) IsValid(authKey string) error {
+	key := fmt.Sprintf("%s%s%s%s", m.OrderID, m.StatusCode, m.GrossAmount, authKey)
 	h512 := sha512.New()
 	io.WriteString(h512, key)
 	if fmt.Sprintf("%x", h512.Sum(nil)) != m.SignKey {

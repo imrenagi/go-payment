@@ -1,4 +1,4 @@
-package service
+package manager
 
 import (
 	"context"
@@ -7,11 +7,47 @@ import (
 	"fmt"
 
 	"github.com/imrenagi/go-payment"
-	factory "github.com/imrenagi/go-payment/gateway/xendit"
+	midfactory "github.com/imrenagi/go-payment/gateway/midtrans"
+	midgateway "github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/gateway/xendit"
+	factory "github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
 	goxendit "github.com/xendit/xendit-go"
 )
+
+type midtransCharger struct {
+	MidtransGateway *midgateway.Gateway
+}
+
+func (c midtransCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
+
+	snapRequest, err := midfactory.NewSnapRequestFromInvoice(inv)
+	if err != nil {
+		return nil, err
+	}
+
+	// bytes, err := json.MarshalIndent(snapRequest, "", "\t")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// fmt.Println(string(bytes))
+
+	resp, err := c.MidtransGateway.SnapGateway.GetToken(snapRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return &invoice.ChargeResponse{
+		PaymentToken: resp.Token,
+		PaymentURL:   resp.RedirectURL,
+		// TransactionID: resp.
+
+	}, nil
+}
+
+func (c midtransCharger) Gateway() payment.Gateway {
+	return payment.GatewayMidtrans
+}
 
 type xenditCharger struct {
 	XenditGateway *xendit.Gateway
@@ -111,7 +147,6 @@ func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoi
 	return nil, fmt.Errorf("payment method is not recognized")
 }
 
-func (c xenditCharger) Gateway() string {
-	// TODO change this later
-	return "xendit"
+func (c xenditCharger) Gateway() payment.Gateway {
+	return payment.GatewayXendit
 }

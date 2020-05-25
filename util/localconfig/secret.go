@@ -16,6 +16,7 @@ type Secret struct {
 	Payment PaymentSecret `yaml:"payment"`
 }
 
+// DBCredential stores database credential
 type DBCredential struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
@@ -24,11 +25,13 @@ type DBCredential struct {
 	DBName   string `yaml:"dbname"`
 }
 
+// PaymentSecret stores secret for payment gateway
 type PaymentSecret struct {
 	Midtrans APICredential `yaml:"midtrans"`
 	Xendit   APICredential `yaml:"xendit"`
 }
 
+// APICredential stores the credential used for connecting to an API service
 type APICredential struct {
 	ClientID      string `yaml:"clientId"`
 	ClientKey     string `yaml:"clientKey"`
@@ -36,6 +39,7 @@ type APICredential struct {
 	CallbackToken string `yaml:"callbackToken"`
 }
 
+// LoadSecret reads the file from path and return Secret
 func LoadSecret(path string) (*Secret, error) {
 	fang := viper.New()
 	fang.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

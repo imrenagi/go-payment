@@ -25,7 +25,7 @@ func (m *MidtransTransactionRepository) Save(ctx context.Context, status *midtra
 	return nil
 }
 
-// FindByOrderID
+// FindByOrderID fetch a transaction status for a given orderID
 func (m *MidtransTransactionRepository) FindByOrderID(ctx context.Context, orderID string) (*midtrans.TransactionStatus, error) {
 	log := zerolog.Ctx(ctx).With().Str("function", "MidtransTransactionRepository.FindByOrderID").Logger()
 

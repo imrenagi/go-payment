@@ -74,7 +74,6 @@ type CreditCardDetail struct {
 	Bank        payment.Bank `json:"bank"`
 }
 
-// TODO change this!
 type Installment struct {
 	Type payment.InstallmentType `json:"type"`
 	Term int                     `json:"term"`

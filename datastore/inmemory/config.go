@@ -38,18 +38,18 @@ func NewPaymentConfigRepository() *PaymentConfigRepository {
 	return repo
 }
 
-// PaymentConfigRepository ...
+// PaymentConfigRepository is storage for payment configurations
 type PaymentConfigRepository struct {
 	config *config.PaymentConfig
 }
 
-func (r PaymentConfigRepository) FindByPaymentType(
-	ctx context.Context,
-	paymentType payment.PaymentType,
-	opts ...payment.PaymentOption,
-) (config.FeeConfigReader, error) {
+// FindByPaymentType return FeeConfigReader for a given payment type. If it is a credit card,
+// credit card option will be check to get the type of installment, term and its aqcuiring bank.
+// Otherwise 0 month installment offline from BCA will be used.
+func (r PaymentConfigRepository) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType,
+	opts ...payment.Option) (config.FeeConfigReader, error) {
 
-	options := payment.PaymentOptions{
+	options := payment.Options{
 		CreditCard: &payment.CreditCard{
 			Bank: payment.BankBCA,
 			Installment: payment.Installment{
@@ -67,11 +67,10 @@ func (r PaymentConfigRepository) FindByPaymentType(
 	case payment.SourceCreditCard:
 		cardPayment := r.config.CardPayment
 		if options.CreditCard != nil {
-			installment, err := cardPayment.
-				GetInstallment(
-					options.CreditCard.Bank,
-					options.CreditCard.Installment.Type,
-				)
+			installment, err := cardPayment.GetInstallment(
+				options.CreditCard.Bank,
+				options.CreditCard.Installment.Type,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -120,6 +119,8 @@ func (r PaymentConfigRepository) FindByPaymentType(
 	return nil, nil
 }
 
+// FindAll returns all payment configurations.
 func (r PaymentConfigRepository) FindAll(ctx context.Context) (*config.PaymentConfig, error) {
+	// TODO we need to check whether the payment method is enabled or not
 	return r.config, nil
 }

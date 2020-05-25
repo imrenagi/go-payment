@@ -18,10 +18,11 @@ func NewGateway(creds localconfig.APICredential) *Gateway {
 	c := client.New(creds.SecretKey)
 
 	gateway := Gateway{
-		client:    c,
-		Ewallet:   c.EWallet,
-		Invoice:   c.Invoice,
-		Recurring: c.RecurringPayment,
+		callbackToken: creds.CallbackToken,
+		client:        c,
+		Ewallet:       c.EWallet,
+		Invoice:       c.Invoice,
+		Recurring:     c.RecurringPayment,
 	}
 
 	return &gateway
@@ -29,20 +30,26 @@ func NewGateway(creds localconfig.APICredential) *Gateway {
 
 // Gateway ...
 type Gateway struct {
-	client    *client.API
-	Ewallet   Ewallet
-	Invoice   Invoice
-	Recurring Recurring
+	callbackToken string
+	client        *client.API
+	Ewallet       xEwallet
+	Invoice       xInvoice
+	Recurring     xRecurring
 }
 
-type Ewallet interface {
+// NotificationValidationKey returns xendit callback authentication token
+func (g Gateway) NotificationValidationKey() string {
+	return g.callbackToken
+}
+
+type xEwallet interface {
 	CreatePayment(data *ewallet.CreatePaymentParams) (*xgo.EWallet, *xgo.Error)
 }
 
-type Invoice interface {
+type xInvoice interface {
 	CreateWithContext(ctx context.Context, data *invoice.CreateParams) (*xgo.Invoice, *xgo.Error)
 }
 
-type Recurring interface {
+type xRecurring interface {
 	CreateWithContext(ctx context.Context, data *recurring.CreateParams) (*xgo.RecurringPayment, *xendit.Error)
 }

@@ -7,8 +7,8 @@ import (
 
 func draftInvoice() *Invoice {
 	i := emptyInvoice()
-	i.SetBillingAddress("Foo", "foo@bar.com", "08123")
-	i.SetPaymentMethod(&Payment{
+	i.UpsertBillingAddress("Foo", "foo@bar.com", "08123")
+	i.UpdatePaymentMethod(&Payment{
 		PaymentType: payment.SourceBNIVA,
 	})
 	return i

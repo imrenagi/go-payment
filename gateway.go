@@ -5,18 +5,23 @@ import (
 	"strings"
 )
 
+// Gateway represent payment gateway used
 type Gateway int
 
 const (
+	// UnknownGateway gateway is unknown
 	UnknownGateway Gateway = iota
-	Midtrans
-	Xendit
+	// GatewayMidtrans is midtrans payment gateway
+	GatewayMidtrans
+	// GatewayXendit is xendit payment gateway
+	GatewayXendit
 )
 
 func (g Gateway) String() string {
 	return []string{"unkown", "midtrans", "xendit"}[g]
 }
 
+// UnmarshalYAML convert string to Gateway enum
 func (g *Gateway) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var n string
 	if err := unmarshal(&n); err != nil {
@@ -32,13 +37,14 @@ func (g *Gateway) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// NewGateway return a gateway for its string name
 func NewGateway(name string) Gateway {
 	var g Gateway
 	switch strings.ToLower(name) {
 	case "midtrans":
-		g = Midtrans
+		g = GatewayMidtrans
 	case "xendit":
-		g = Xendit
+		g = GatewayXendit
 	default:
 		g = UnknownGateway
 	}

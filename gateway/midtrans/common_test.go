@@ -13,7 +13,7 @@ func dummyInv() *invoice.Invoice {
 	i := invoice.New(date, dueDate)
 
 	i.SubTotal = 5000
-	i.SetBillingAddress("Foo", "foo@bar.com", "0812312412")
+	i.UpsertBillingAddress("Foo", "foo@bar.com", "0812312412")
 
 	i.SetItem(context.TODO(),
 		invoice.LineItem{

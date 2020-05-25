@@ -1,4 +1,4 @@
-package service
+package manager
 
 import (
 	"github.com/imrenagi/go-payment"
@@ -53,10 +53,11 @@ func paymentMethodListFromConfig(cfg *config.PaymentConfig, subtotal *payment.Mo
 
 }
 
+// PaymentMethodList is the payment method list showed to the user
 type PaymentMethodList struct {
-	CardPayment     *config.CardPayment `json:"card_payment"`
-	BankTransfers   []config.NonCardPayment    `json:"bank_transfers"`
-	EWallets        []config.NonCardPayment    `json:"ewallets"`
-	CStores         []config.NonCardPayment    `json:"cstores"`
-	CardlessCredits []config.NonCardPayment    `json:"cardless_credits"`
+	CardPayment     *config.CardPayment     `json:"card_payment"`
+	BankTransfers   []config.NonCardPayment `json:"bank_transfers"`
+	EWallets        []config.NonCardPayment `json:"ewallets"`
+	CStores         []config.NonCardPayment `json:"cstores"`
+	CardlessCredits []config.NonCardPayment `json:"cardless_credits"`
 }

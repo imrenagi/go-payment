@@ -1,3 +1,45 @@
-api
-.idea/*
+build
+.idea
+.gradle
+*.iml
+out/
+logs
+*.log
+*.swp
+.env
+.env.local
+.env.*.local
+
+# Eclipse Setting
+/.metadata
+/Servers
+.settings
+.project
+.classpath
+.buildpath
+
+# Maven
+target
+
+# Netbeans Ignore
+nbproject
+dist
+private
+
+#idea project
+*.iws
+*.ipr
+
+# OS generated files #
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+#Project Spesific
+_output/
+bin/
+vendor/

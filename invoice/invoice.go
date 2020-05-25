@@ -15,14 +15,14 @@ func newInvoiceNumber() string {
 	return uuid.New().String()
 }
 
-func NewDefault(message string) *Invoice {
+// NewDefault creates new invoice with 1 day expiration time
+func NewDefault() *Invoice {
 	now := time.Now()
 	inv := New(now, now.AddDate(0, 0, 1))
-	inv.Message = message
-
 	return inv
 }
 
+// New accept invoice start and due date and return a new invoice in a draft state.
 func New(invoiceDate, dueDate time.Time) *Invoice {
 	return &Invoice{
 		Number:          newInvoiceNumber(),
@@ -53,9 +53,9 @@ type Invoice struct {
 	LineItem        *LineItem       `json:"item"`
 	Payment         *Payment        `json:"payment" gorm:"ForeignKey:InvoiceID"`
 	BillingAddress  *BillingAddress `json:"billing_address" gorm:"ForeignKey:InvoiceID"`
-	Message         string          `json:"message" gorm:"not null;type:text"`
 }
 
+// GetTitle ...
 func (i *Invoice) GetTitle() string {
 	return i.Title
 }
@@ -95,18 +95,59 @@ func (i *Invoice) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// GetTotal adds up the subtotal, tax, service fee and installment fee and
+// deduct the discout value
 func (i *Invoice) GetTotal() float64 {
 	return i.SubTotal + i.Tax + i.ServiceFee + i.InstallmentFee - i.Discount
 }
 
 type paymentMethodFinder interface {
-	FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.PaymentOption) (config.FeeConfigReader, error)
+	FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error)
 }
 
-// UpdateFee will update service and installment fee when the payment method is set
-func (i *Invoice) UpdateFee(ctx context.Context, finder paymentMethodFinder, opts ...payment.PaymentOption) error {
-	if i.Payment == nil {
-		return InvoiceError{InvoiceErrorPaymentMethodNotSet}
+// Clear remove all invoice values (subtotal, discount, tax, fee, line item and payment method)
+// and reset the state to draft
+func (i *Invoice) Clear() {
+	i.SubTotal = 0
+	i.Discount = 0
+	i.Tax = 0
+	i.ServiceFee = 0
+	i.InstallmentFee = 0
+	i.State = Draft
+	i.LineItem = nil
+	i.Payment = nil
+}
+
+// AfterFind assign a state controller after the entity is fetched from
+// database
+func (i *Invoice) AfterFind() error {
+	i.StateController = NewState(i.State.String())
+	return nil
+}
+
+// UpsertBillingAddress create new billing address or update the existing one if it exist
+func (i *Invoice) UpsertBillingAddress(name, email, phoneNumber string) error {
+	if i.BillingAddress == nil {
+		addr, err := NewBillingAddress(name, email, phoneNumber)
+		if err != nil {
+			return err
+		}
+		i.BillingAddress = addr
+	} else {
+		err := i.BillingAddress.Update(name, email, phoneNumber)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UpdatePaymentMethod set the payment method and recalculate the service and installment fee
+// of the invoice
+func (i *Invoice) UpdatePaymentMethod(ctx context.Context, payment *Payment, finder paymentMethodFinder, opts ...payment.Option) error {
+	if payment != nil {
+		i.Payment = payment
+		i.Payment.InvoiceID = i.ID
 	}
 
 	feeCalculator, err := finder.FindByPaymentType(ctx, i.Payment.PaymentType, opts...)
@@ -124,54 +165,12 @@ func (i *Invoice) UpdateFee(ctx context.Context, finder paymentMethodFinder, opt
 	if f := feeCalculator.GetInstallmentFeeConfig(i.Currency); f != nil {
 		i.InstallmentFee = f.Estimate(i.SubTotal)
 	}
-	return nil
-}
 
-// Clear ...
-func (i *Invoice) Clear() {
-	i.SubTotal = 0
-	i.Discount = 0
-	i.Tax = 0
-	i.ServiceFee = 0
-	i.InstallmentFee = 0
-	i.State = Draft
-	i.LineItem = nil
-	i.Payment = nil
-}
-
-func (i *Invoice) AfterFind() error {
-	i.StateController = NewState(i.State.String())
-	return nil
-}
-
-// SetBillingAddress ...
-func (i *Invoice) SetBillingAddress(name, email, phoneNumber string) error {
-	if i.BillingAddress == nil {
-		addr, err := NewBillingAddress(name, email, phoneNumber)
-		if err != nil {
-			return err
-		}
-		i.BillingAddress = addr
-	} else {
-		err := i.BillingAddress.Update(name, email, phoneNumber)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// SetPaymentMethod ...
-func (i *Invoice) SetPaymentMethod(payment *Payment) error {
-	if payment != nil {
-		i.Payment = payment
-		i.Payment.InvoiceID = i.ID
-	}
 	return nil
 }
 
 // CreateChargeRequest will use `charger` to create a charge request to
-// the payment gateway
+// the payment gateway and update invoice payment attributes
 func (i *Invoice) CreateChargeRequest(ctx context.Context, charger PaymentCharger) error {
 	res, err := charger.Create(ctx, i)
 	if err != nil {
@@ -179,7 +178,7 @@ func (i *Invoice) CreateChargeRequest(ctx context.Context, charger PaymentCharge
 	}
 
 	if i.Payment != nil {
-		i.Payment.Gateway = charger.Gateway()
+		i.Payment.Gateway = charger.Gateway().String()
 		i.Payment.Token = res.PaymentToken
 		i.Payment.RedirectURL = res.PaymentURL
 		i.Payment.TransactionID = res.TransactionID
@@ -188,11 +187,12 @@ func (i *Invoice) CreateChargeRequest(ctx context.Context, charger PaymentCharge
 	return nil
 }
 
-// TableName ...
+// TableName returns the table name used for gorm
 func (Invoice) TableName() string {
 	return "invoices"
 }
 
+// SetItem set the informations of the invoice item
 func (i *Invoice) SetItem(ctx context.Context, item LineItem) error {
 	i.LineItem = &LineItem{
 		InvoiceID:    i.ID,
@@ -208,6 +208,7 @@ func (i *Invoice) SetItem(ctx context.Context, item LineItem) error {
 	return nil
 }
 
+// AddDiscount adds discount if any to the invoice. If discount value is less than 0, error is returned.
 func (i *Invoice) AddDiscount(value float64) error {
 	if value < 0 {
 		return InvoiceError{InvoiceErrorInvalidDiscountValue}
@@ -216,21 +217,27 @@ func (i *Invoice) AddDiscount(value float64) error {
 	return nil
 }
 
+// RemoveDiscount sets the discount to 0
 func (i *Invoice) RemoveDiscount() error {
 	i.Discount = 0
 	return nil
 }
 
+// GetSubTotal returns to total price of all items within the invoice
 func (i *Invoice) GetSubTotal() float64 {
 	return i.LineItem.SubTotal()
 }
 
+// SetState set the invoice state to the given state
 func (i *Invoice) SetState(state StateController) error {
 	i.StateController = state
 	i.State = state.State(i)
 	return nil
 }
 
+// Publish checks whether payment and billing address of invoice are set. Then,
+// it reset the invoice date to the the time of this methods is used.
+// It later delegate the action to its state controller.
 func (i *Invoice) Publish(ctx context.Context) error {
 
 	if i.Payment == nil {
@@ -249,20 +256,24 @@ func (i *Invoice) Publish(ctx context.Context) error {
 	return i.StateController.Publish(i)
 }
 
+// Pay set the PaidAt time. It later delegate the action to its state controller.
 func (i *Invoice) Pay(ctx context.Context, transactionID string) error {
 	now := time.Now()
 	i.PaidAt = &now
 	return i.StateController.Pay(i, transactionID)
 }
 
+// Process delegates the action to its state controller
 func (i *Invoice) Process(ctx context.Context) error {
 	return i.StateController.Process(i)
 }
 
+// Fail delegates the action to its state controller
 func (i *Invoice) Fail(ctx context.Context) error {
 	return i.StateController.Fail(i)
 }
 
+// Reset changes the invoice invoice so that it can be used again
 func (i *Invoice) Reset(ctx context.Context) error {
 
 	i.Number = newInvoiceNumber()
@@ -281,6 +292,7 @@ func (i *Invoice) Reset(ctx context.Context) error {
 	return i.StateController.Reset(i)
 }
 
+// GetState returns the current state of invoice
 func (i *Invoice) GetState() State {
 	return i.StateController.State(i)
 }

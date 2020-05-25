@@ -27,8 +27,8 @@ func TestFailedState_Pay(t *testing.T) {
 	t.Run("can't change state to published", func(t *testing.T) {
 		i := emptyInvoice()
 		i.SetState(&FailedState{})
-		i.SetPaymentMethod(&Payment{})
-		i.SetBillingAddress("foo", "foo@bar.com", "0811")
+		i.UpdatePaymentMethod(&Payment{})
+		i.UpsertBillingAddress("foo", "foo@bar.com", "0811")
 
 		err := i.Publish(context.TODO())
 		assert.NotNil(t, err)

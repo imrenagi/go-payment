@@ -5,25 +5,32 @@ import (
 	"strconv"
 )
 
-type PaymentOption func(*PaymentOptions)
+// Option is type closure accepting a Options
+type Option func(*Options)
 
+// CreditCard tells information about the acquire bank and
+// installment used
 type CreditCard struct {
 	Bank        Bank
 	Installment Installment
 }
 
+// Installment tells installent type and term
 type Installment struct {
 	Type InstallmentType
 	Term int
 }
 
-type PaymentOptions struct {
+// Options stores all optional properties for payment purposes
+type Options struct {
 	Price      *Money
 	CreditCard *CreditCard
 }
 
-func WithPrice(price float64, currency string) PaymentOption {
-	return func(o *PaymentOptions) {
+// WithPrice can be used if user want to add optional price information
+// used for estimating the admin/installment fee
+func WithPrice(price float64, currency string) Option {
+	return func(o *Options) {
 		o.Price = &Money{
 			Value:    price,
 			Currency: currency,
@@ -31,14 +38,16 @@ func WithPrice(price float64, currency string) PaymentOption {
 	}
 }
 
-func WithCreditCard(bank Bank, installmentType InstallmentType, installmentTerm int) PaymentOption {
+// WithCreditCard can be used if user want to use the installment feature. It accepts the acquire bank,
+// installment type and term
+func WithCreditCard(bank Bank, installmentType InstallmentType, installmentTerm int) Option {
 	if bank == "" {
 		bank = BankBCA
 	}
 	if installmentType == "" {
 		installmentType = InstallmentOffline
 	}
-	return func(o *PaymentOptions) {
+	return func(o *Options) {
 		o.CreditCard = &CreditCard{
 			Bank: bank,
 			Installment: Installment{
@@ -49,9 +58,10 @@ func WithCreditCard(bank Bank, installmentType InstallmentType, installmentTerm 
 	}
 }
 
-func NewPaymentMethodListOptions(r *http.Request) ([]PaymentOption, error) {
+// NewPaymentMethodListOptions accepts http.Request and returns set of option containing the price and its currency.
+func NewPaymentMethodListOptions(r *http.Request) ([]Option, error) {
 	r.ParseForm()
-	var options []PaymentOption
+	var options []Option
 	var price float64
 	var currency string
 	var err error

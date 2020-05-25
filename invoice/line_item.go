@@ -34,17 +34,19 @@ func (l LineItemError) Unwrap() error {
 
 // NewLineItem ...
 func NewLineItem(
-	name, category, merchant string,
+	name, category, merchant, description string,
 	unitPrice float64,
+	qty int,
 	currency string,
 ) *LineItem {
 	return &LineItem{
 		Name:         name,
+		Description:  description,
 		Category:     category,
 		MerchantName: merchant,
 		Currency:     currency,
 		UnitPrice:    unitPrice,
-		Qty:          1,
+		Qty:          qty,
 	}
 }
 
@@ -65,11 +67,13 @@ func (LineItem) TableName() string {
 	return "invoice_line_items"
 }
 
+// IncreaseQty ...
 func (i *LineItem) IncreaseQty() error {
 	i.Qty = i.Qty + 1
 	return nil
 }
 
+// DecreaseQty ...
 func (i *LineItem) DecreaseQty() error {
 	if i.Qty < 1 {
 		return LineItemError{LineItemErrInvalidQty}
@@ -78,6 +82,7 @@ func (i *LineItem) DecreaseQty() error {
 	return nil
 }
 
+// SubTotal ...
 func (i LineItem) SubTotal() float64 {
 	return i.UnitPrice * float64(i.Qty)
 }
