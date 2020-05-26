@@ -13,7 +13,7 @@ Payment module used as proxy for multiple payment gateways. Currently it only su
 ---
 
 <details>
-<summary><b>View table of contents</b></summary>
+<summary><b>View table of contents</b></summary><br/>
 
 - [Payment Channels Supported](#payment-channels-supported)
 - [Why you should use this payment proxy?](#why-you-should-use-this-payment-proxy)
