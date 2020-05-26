@@ -88,11 +88,11 @@ Here is the comparison between Midtrans and Xendit onboarding based on my onboar
 | Cooperation Agreement (Perjanjian Kerja Sama) | Online Signing | Paper Signing and use Legalized Stamp |
 | Active channels after agreement is signed | Gopay, Bank Transfer | Bank Transfer, Credit Card |
 | OVO, LinkAja, Dana activation | n/a | Fill additional forms on the dashboard. Activation varies between weeks - months |
-| Alfamart activation | Require you to have business entity (PT, CV, etc) prior to activation | No need to be PT, CV. Just fill and sign additional form on the dashboard. Might take weeks or months.
-| Credit card activation | Require you to have business entity (PT, CV, etc) prior to activation | Immediately activated after document sign |
+| Alfamart activation | Require additional request and midtrans review for the activation | No need to be PT, CV. Just fill and sign additional form on the dashboard. Might take weeks or months.
+| Credit card activation | Require additional request and midtrans review for the activation | Immediately activated after document sign |
 | Disbursement feature | Not included on the same PKS. Need to contact IRIS team for new agreement, activation and onboarding | Immediately activated after document sign |
 | Akulaku activation | Might require business entity (PT, CV) | n/a |
-| Kredivo activation | n/a | Might require business entity (PT, CV). This option is not given after the onboarding completed. |
+| Kredivo activation | n/a | Ask your account manager to activate this payment method |
 | API Documentation | Available | Available |
 | Golang SDK | Available | Available, but under development. Expect breaking changes in newer version |
 
@@ -314,6 +314,108 @@ $ go run example/server/server.go
 ```
 
 > :heavy_exclamation_mark: If you want to accept payment callback from the payment gateway on your local computer for development purpose, consider to use [ngrok.io](https://ngrok.io) to expose your localhost to the internet and update the callback base URL in payment gateway dashboard and `SERVER_BASE_URL` accordingly.
+
+## API Usage
+
+Your client webservice can interact to at least 2 endpoints:
+* GET all payment methods available
+* POST generating new invoice
+
+### List of payment methods
+
+#### Request
+If you want to get the estimated admin/installment fee for each payment methods, provice this GET request with optional `price` and `currency` query. Otherwise, it returns nil `admin_fee` and `installment_fee`
+```
+GET /payment/methods?price=1000&currency=IDR
+```
+
+#### Response
+```json
+{
+    "card_payment": {
+        "payment_type": "credit_card",
+        "installments": [
+            {
+                "display_name": "",
+                "type": "offline",
+                "bank": "bca",
+                "terms": [
+                    {
+                        "term": 0,
+                        "admin_fee": {
+                            "value": 2029,
+                            "curency": "IDR"
+                        }
+                    },
+    // ... redacted ...
+    "ewallets": [
+        {
+            "payment_type": "gopay",
+            "display_name": "Gopay",
+            "admin_fee": {
+                "value": 0,
+                "curency": "IDR"
+            }
+        },                     
+```
+
+### Generating New Invoice
+
+Use this endpoint to create a payment request to chosen payment channels and gateway.
+
+#### Request
+```
+POST /payment/invoices
+{
+	"payment": {
+		"payment_type": "ovo"
+	},
+	"customer": {
+		"name": "John",
+		"email": "foo@example.com",
+		"phone_number": "089922222222"
+	},
+	"item": {
+		"name": "Support Podcast",
+		"category": "PODCAST",
+		"merchant": "imrenagi.com",
+		"description": "donasi podcast imre nagi",
+		"qty": 1,
+		"price": 80001,
+		"currency": "IDR"
+	}
+}
+```
+
+#### Response
+
+When you call endpoint above, server returns all invoice data. But, to proceed to the payment page you need to pay attention to `payment` object.
+```
+{
+  "payment": {
+      "id": 48,
+      "created_at": "2020-05-25T23:31:44.99873+07:00",
+      "updated_at": "2020-05-25T23:31:44.99873+07:00",
+      "deleted_at": null,
+      "gateway": "xendit",
+      "payment_type": "ovo",
+      "token": "",
+      "redirect_url": "https://invoice.xendit.co/web/invoices5ecbf2f0689543409347ec15",
+      "transaction_id": "5ecbf2f0689543409347ec15"
+  }
+}
+```
+:heavy_exclamation_mark::heavy_exclamation_mark::heavy_exclamation_mark: Please note:
+#### For Midtrans Payment Channel
+* Value of `payment.gateway` will is always `midtrans`
+* You can use `payment.token` to open snap window by using midtrans [snap.js](https://snap-docs.midtrans.com/#snap-js)
+* If you want to use [Window Redirection](https://snap-docs.midtrans.com/#window-redirection), you can open a new browser tab by using url in `payment.redirect_url`
+
+#### For Xendit Payment Channel
+* Value of `payment.gateway` will is always `xendit`
+* `payment.token` is always empty for all xendit provided payment channels
+* You will always open `payment.redirect_url` in new browser tap for all payment methods provided by xendit. Including DANA, LinkAja, Kredivo, even Xendit Invoice.
+
 
 ## Contributing
 
