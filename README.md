@@ -378,7 +378,7 @@ Your client webservice can interact to at least 2 endpoints:
 
 ### POSTMAN JSON
 
-You can download this POSTMAN json file to see how to use the api. [POSTMAN FILE](/example/server/go-payment.postman_collection.json)
+You can download this POSTMAN json file to see how to use the api. [POSTMAN COLLECTION](/example/server/go-payment.postman_collection.json)
 
 ### List of payment methods
 
@@ -458,6 +458,8 @@ POST /payment/invoices
   }
 }
 ```
+
+> To create invoice with `credit_card` payment with/without installment, please take a look [POSTMAN COLLECTION](/example/server/go-payment.postman_collection.json)
 
 #### Response
 
