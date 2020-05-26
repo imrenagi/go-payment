@@ -140,7 +140,7 @@ Before using this application, you might need to update [secret.yaml](/example/s
 For testing purpose, you can use mysql docker image to bootstrap a mysql database
 
 ```bash
-$ docker run --name some-mysql -e MYSQL_DATABASE=your-database-name -e MYSQL_USER=your-user -e MYSQL_PASSWORD=your-password -d mysql:5.7
+$ docker run --name some-mysql -e MYSQL_DATABASE=your-database-name -e MYSQL_USER=your-user -e MYSQL_PASSWORD=your-password -p 3306:3306 -d mysql:5.7
 ```
 Then, please update the secret below with your database credential. 
 ```yaml
@@ -320,6 +320,9 @@ $ go run example/server/server.go
 Your client webservice can interact to at least 2 endpoints:
 * GET all payment methods available
 * POST generating new invoice
+
+### POSTMAN JSON
+You can download this POSTMAN json file to see how to use the api. [POSTMAN FILE](/example/server/go-payment.postman_collection.json)
 
 ### List of payment methods
 
