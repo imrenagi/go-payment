@@ -21,8 +21,8 @@ func NewInvoiceRequestBuilder(inv *invoice.Invoice) *InvoiceRequestBuilder {
 		request: &xinvoice.CreateParams{
 			ExternalID:         inv.Number,
 			ShouldSendEmail:    &shouldSendEmail,
-			SuccessRedirectURL: fmt.Sprintf("%s/donate/thanks", os.Getenv("WEB_BASE_URL")),
-			FailureRedirectURL: fmt.Sprintf("%s/donate/error", os.Getenv("WEB_BASE_URL")),
+			SuccessRedirectURL: fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("SUCCESS_REDIRECT_PATH")),
+			FailureRedirectURL: fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("FAILED_REDIRECT_PATH")),
 			Currency:           "IDR",
 			PaymentMethods:     make([]string, 0),
 		},

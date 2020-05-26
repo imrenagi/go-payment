@@ -25,7 +25,7 @@ func (o *LinkAja) Build() (*ewallet.CreatePaymentParams, error) {
 
 	o.rb.SetPaymentMethod(goxendit.EWalletTypeLINKAJA).
 		SetCallback(fmt.Sprintf("%s/payment/xendit/linkaja/callback", os.Getenv("SERVER_BASE_URL"))).
-		SetRedirect(fmt.Sprintf("%s/donate/thanks", os.Getenv("WEB_BASE_URL")))
+		SetRedirect(fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("SUCCESS_REDIRECT_PATH")))
 
 	req, err := o.rb.Build()
 	if err != nil {

@@ -175,7 +175,7 @@ payment:
 * Add key Name. Grant write permission for both **Money-in products**
 * Take the generated API Keys and Verification Callback Token, update the `secret.yaml`
 
-```
+```yaml
 payment:
   ...
   xendit:
@@ -235,6 +235,8 @@ bank_transfers:
 
 ### Mandatory Environment Variables
 
+You need to set these mandatory environment variables to make sure this proxy to work.
+
 ```bash
 # ENVIRONMENT can be either staging or production
 export ENVIRONMENT=staging
@@ -245,6 +247,8 @@ export SUCCESS_REDIRECT_PATH="/donate/thanks"
 export PENDING_REDIRECT_PATH="/donate/pending"
 export FAILED_REDIRECT_PATH="/donate/error"
 ```
+
+> `SUCCESS_REDIRECT_PATH` and `FAILED_REDIRECT_PATH` will be concatenated with `WEB_BASE_URL` to form redirect URL when they payment is completed or failed. For instance, take a look to this [success](https://imrenagi.com/donate/thanks) and [failed](https://imrenagi.com/donate/error) page.
 
 ## Example Code
 
