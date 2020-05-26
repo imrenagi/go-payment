@@ -17,7 +17,7 @@ In general, this payment proxy can support payment through this following channe
 
 > :heavy_exclamation_mark: Support for recurring payment will be added soon!
 
-### Why you should use this payment proxy?
+# Why you should use this payment proxy?
 * If you are planning to use Midtrans SNAP and Xendit Invoice as the UI for the payment, you are strongly encouraged to use this proxy because it supports both UIs.
 * This proxy helps you managing the payment gateway used for each channel. It internally connects to both payment gateway as you need, in no time. What your API user knows is only one single API to generate `Invoice`
 * This proxy helps you seemlesly switch the gateway for a payment channel whenever one of them is not functioning properly/down for maintenance. For instance, Bank Transfer by VA, are supported by Midtrans and Xendit. If Midtrans VA is going south, you can easily switch the gateway to Xendit simply by updating the configuration file.
