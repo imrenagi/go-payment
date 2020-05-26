@@ -3,7 +3,7 @@ Go-Payment
 
 Payment module used as proxy for multiple payment gateways. Currently it only supports [Midtrans SNAP](https://snap-docs.midtrans.com/) and Xendit [Ewallet](https://xendit.github.io/apireference/#ewallets) and [XenInvoice](https://xendit.github.io/apireference/#invoices). Support for other channels will be added incrementally.
 
-> This payment proxy is a payment service I used for my [personal site](https://imrenagi.com/donate). Thinking that this might be useful to help other people so that they can start accept money ASAP.
+> This payment proxy is a payment service I used for my [personal site](https://imrenagi.com/donate). Thinking that this might be useful to help other people so that they can start accept money ASAP, so I decided to make this module open source.
 
 ## Features
 
@@ -64,40 +64,128 @@ This tables shows which payment channels that has been implemented by this proxy
 
 ## Getting Started
 
+Here some preparations that you might need before using this proxy.
+
 ### Payment Gateway Registration
+
+This can be tricky. If you have personal business, this might be easier. If you have business entity (PT, CV, etc), there are some additional processes you have to follow and some documents that you have to provide. In this context, I will just assume that you have personal business like what I do: [imrenagi.com](https://imrenagi.com)
 
 #### Midtrans
 
+Please review this [page](https://midtrans.com/tentang-passport) before creating an account. 
+
 #### Xendit
+
+Please visit this [registration page](https://dashboard.xendit.co/register/1) for creating an account.
+
+#### Midtrans VS Xendit Onboarding
+
+Here is the comparison between Midtrans and Xendit onboarding based on my onboarding experience.
+
+| Criteria | Midtrans | Xendit |
+|---|---|---|
+| Document to provide for registration | KTP, NPWP | KTP, NPWP |
+| Cooperation Agreement (Perjanjian Kerja Sama) | Online Signing | Paper Signing and use Legalized Stamp |
+| Active channels after agreement is signed | Gopay, Bank Transfer | Bank Transfer, Credit Card |
+| OVO, LinkAja, Dana activation | n/a | Fill additional forms on the dashboard. Activation varies between weeks - months |
+| Alfamart activation | Require you to have business entity (PT, CV, etc) prior to activation | No need to be PT, CV. Just fill and sign additional form on the dashboard. Might take weeks or months.
+| Credit card activation | Require you to have business entity (PT, CV, etc) prior to activation | Immediately activated after document sign |
+| Disbursement feature | Not included on the same PKS. Need to contact IRIS team for new agreement, activation and onboarding | Immediately activated after document sign |
+| Akulaku activation | Might require business entity (PT, CV) | n/a |
+| Kredivo activation | n/a | Might require business entity (PT, CV). This option is not given after the onboarding completed. |
+| API Documentation | Available | Available |
+| Golang SDK | Available | Available, but under development. Expect breaking changes in newer version |
 
 ### Payment Gateway Callback
 
+Payment Gateway Callback is POST request sent by payment gateway to notify our backend about any changes happened with the payment. Either it is success, pending, or failed due to a reason. This proxy have it handled.
+
+| Payment Channel | Callback URL Path | 
+|---|---|
+| All payments through Midtrans SNAP | `/payment/midtrans/callback` |
+| All payments through Xendit Invoice UI | `/payment/xendit/invoice/callback` |
+| Xendit Dana | `/payment/xendit/dana/callback` |
+| Xendit LinkAja | `/payment/xendit/linkaja/callback` |
+
+> For payment with OVO, the proxy does not directly call OVO Ewallet API, but it uses Xendit Invoice UI instead. Thus, all payment callback/notification about OVO go to Xendit Invoice callback `/payment/xendit/invoice/callback`.
+
 #### Midtrans
+
+To set your callback URL, 
+* Login to https://dashboard.midtrans.com
+* Choose environment (Sandbox or Production)
+* Click Settings > Configuration
+* Set your **Payment Notification URL** with your server callback. For instance: `https://api.imrenagi.com/payment/midtrans/callback`
+* Set your **Finish**, **Unfinish**, and **Error** redirect URL
+* Click **Update**
 
 #### Xendit
 
+To set your callback URL,
+* Login to https://dashboard.xendit.co
+* Choose environment (Live or Test)
+* Click Settings > Callbacks
+* Set your callbacks for Invoices Paid. For instance: `https://api.imrenagi.com/payment/xendit/invoice/callback`
+* Check option **Also notify my application when an invoice is expired**
+* Click **Save and Test**
+
+> LinkAja and DANA callback URL are not defined on xendit dashboard. Instead, they are given while the proxy is initiating the payment request to Xendit API. You can find the callback URL set on [linkaja.go](/gateway/xendit/linkaja.go) and [dana.go](/gateway/xendit/dana.go)
+
 ### Application Secret
 
+Before using this application, you might need to update [secret.yaml](/example/server/secret.yaml) file containing application secret like database and payment gateway credential. 
+
+#### Database
+
+For testing purpose, you can use mysql docker image to bootstrap a mysql database
+
+```bash
+$ docker run --name some-mysql -e MYSQL_DATABASE=your-database-name -e MYSQL_USER=your-user -e MYSQL_PASSWORD=your-password -d mysql:5.7
+```
+Then, please update the secret below with your database credential. 
 ```yaml
 db:
   host: "127.0.0.1"
   port: 3306
-  username: "imrenagi"
-  password: "imrenagi"
-  dbname: "imrenagi"
+  username: "your-user"
+  password: "your-password"
+  dbname: "your-database-name"
+```
+
+#### Midtrans Credential
+
+* Login to https://dashboard.midtrans.com
+* Choose environment (Sandbox or Production)
+* Click Settings > Access Keys
+* Grab the credentials, and update the `secret.yaml`
+
+```yaml
 payment:
   midtrans:
     secretKey: "midtrans-server-secret"
     clientKey: "midtrans-client-key"
-    clientId: "midtrans-client-id"
+    clientId: "midtrans-merchant-id"
+```
+
+#### Xendit Credential
+
+* Login to https://dashboard.xendit.co
+* Choose environment (Live or Test)
+* Click Settings > API Keys > Generate secret key
+* Add key Name. Grant write permission for both **Money-in products**
+* Take the generated API Keys and Verification Callback Token, update the `secret.yaml`
+
+```
+payment:
+  ...
   xendit:
     secretKey: "xendit-api-key"
     callbackToken: "xendit-callback-token"
-```
+```    
 
 ### Configuration File
 
-You can take a look sample configuration file named [payment-methods.yml](/example/server/payment-methods.yml).
+You can take a look sample configuration file named [payment-methods.yml](/example/server/payment-methods.yml). For instance:
 
 ```yaml
 card_payment:
@@ -142,6 +230,8 @@ bank_transfers:
         val_currency: 4000
         currency: "IDR"
 ```
+
+> `admin_fee` and `installment_fee` are optional key. 
 
 ### Mandatory Environment Variables
 
@@ -223,5 +313,6 @@ $ go run example/server/server.go
 
 ## Contributing
 
+No rules for now. Feel free to add issue first and optionally submit a PR. Cheers
 
 
