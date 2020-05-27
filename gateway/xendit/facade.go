@@ -39,6 +39,8 @@ func NewInvoiceRequestFromInvoice(inv *invoice.Invoice) (*xinvoice.CreateParams,
 	switch inv.Payment.PaymentType {
 	case payment.SourceOvo:
 		reqBuilder, err = NewOVOInvoice(req)
+	case payment.SourceAlfamart:
+		reqBuilder, err = NewAlfamartInvoice(req)
 	}
 	if err != nil {
 		return nil, err
