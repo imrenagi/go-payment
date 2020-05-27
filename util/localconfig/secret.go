@@ -41,25 +41,29 @@ type APICredential struct {
 
 // LoadSecret reads the file from path and return Secret
 func LoadSecret(path string) (*Secret, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return LoadSecretFromBytes(data)
+}
+
+// LoadSecretFromBytes reads the secret file from data bytes
+func LoadSecretFromBytes(data []byte) (*Secret, error) {
 	fang := viper.New()
 	fang.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	fang.AutomaticEnv()
 	fang.SetEnvPrefix("GOPAYMENT")
 	fang.SetConfigType("yaml")
 
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
 	if err := fang.ReadConfig(bytes.NewBuffer(data)); err != nil {
 		return nil, err
 	}
 
 	var creds Secret
-	err = fang.Unmarshal(&creds)
+	err := fang.Unmarshal(&creds)
 	if err != nil {
-		log.Fatalf("Error loading creds from path %s : %v", path, err)
+		log.Fatalf("Error loading creds: %v", err)
 	}
 
 	return &creds, nil
