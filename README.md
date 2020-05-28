@@ -91,7 +91,7 @@ This tables shows which payment channels that has been implemented by this proxy
 
 | Channels                        | Midtrans                            | Xendit                   |
 | ------------------------------- | ----------------------------------- | ------------------------ |
-| Credit Card without installment | :white_check_mark:                  | :heavy_exclamation_mark: |
+| Credit Card without installment | :white_check_mark:                  | :white_check_mark:       |
 | Credit Card with installment    | :white_check_mark:                  | :x:                      |
 | BCA VA                          | :white_check_mark:                  | :white_check_mark:       |
 | Mandiri VA                      | :white_check_mark:                  | :white_check_mark:       |

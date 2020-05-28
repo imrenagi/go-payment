@@ -51,6 +51,8 @@ func NewInvoiceRequestFromInvoice(inv *invoice.Invoice) (*xinvoice.CreateParams,
 		reqBuilder, err = NewPermataVAInvoice(req)
 	case payment.SourceMandiriVA:
 		reqBuilder, err = NewMandiriVAInvoice(req)
+	case payment.SourceCreditCard:
+		reqBuilder, err = NewCreditCardInvoice(req)
 	}
 	if err != nil {
 		return nil, err
