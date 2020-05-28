@@ -34,6 +34,17 @@ card_payment:
               val_currency: 2200
               currency: "IDR"                                          
 bank_transfers:
+  - gateway: xendit
+    payment_type: "bri_va"
+    display_name: "BRI"
+    admin_fee:
+      IDR:
+        val_percentage: 0
+        val_currency: 4000
+        currency: "IDR"
+    waiting_time:
+      duration: 1
+      unit: day
   - gateway: midtrans
     payment_type: "bca_va"
     display_name: "BCA"
@@ -46,8 +57,8 @@ bank_transfers:
       duration: 1
       unit: day
   - gateway: midtrans
-    payment_type: "echannel"
-    display_name: "Mandiri Bill"
+    payment_type: "mandiri_va"
+    display_name: "Mandiri"
     admin_fee:
       IDR:
         val_percentage: 0

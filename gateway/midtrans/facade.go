@@ -18,7 +18,7 @@ func NewSnapRequestFromInvoice(inv *invoice.Invoice) (*gomidtrans.SnapReq, error
 		reqBuilder, err = NewBCAVA(snapRequestBuilder)
 	case payment.SourcePermataVA:
 		reqBuilder, err = NewPermataVA(snapRequestBuilder)
-	case payment.SourceEchannel:
+	case payment.SourceMandiriVA:
 		reqBuilder, err = NewMandiriBill(snapRequestBuilder)
 	case payment.SourceBNIVA:
 		reqBuilder, err = NewBNIVA(snapRequestBuilder)

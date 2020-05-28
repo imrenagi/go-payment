@@ -93,13 +93,13 @@ This tables shows which payment channels that has been implemented by this proxy
 | ------------------------------- | ----------------------------------- | ------------------------ |
 | Credit Card without installment | :white_check_mark:                  | :heavy_exclamation_mark: |
 | Credit Card with installment    | :white_check_mark:                  | :x:                      |
-| BCA VA                          | :white_check_mark:                  | :heavy_exclamation_mark: |
-| Mandiri VA                      | :white_check_mark:                  | :heavy_exclamation_mark: |
-| BNI VA                          | :white_check_mark:                  | :heavy_exclamation_mark: |
-| Permata VA                      | :white_check_mark:                  | :heavy_exclamation_mark: |
-| Other VA                        | :white_check_mark:                  | :heavy_exclamation_mark: |
-| BRI VA                          | :x:                                 | :heavy_exclamation_mark: |
-| Alfamart, Alfamidi, Dan+Dan     | :white_check_mark:                  | :heavy_exclamation_mark: |
+| BCA VA                          | :white_check_mark:                  | :white_check_mark:       |
+| Mandiri VA                      | :white_check_mark:                  | :white_check_mark:       |
+| BNI VA                          | :white_check_mark:                  | :white_check_mark:       |
+| Permata VA                      | :white_check_mark:                  | :white_check_mark:       |
+| Other VA                        | :white_check_mark:                  | :x:                      |
+| BRI VA                          | :x:                                 | :white_check_mark:       |
+| Alfamart, Alfamidi, Dan+Dan     | :white_check_mark:                  | :white_check_mark:       |
 | QRIS                            | :white_check_mark: via Gopay Option | :x:                      |
 | Gopay                           | :white_check_mark:                  | :x:                      |
 | OVO                             | :x:                                 | :white_check_mark:       |

@@ -19,13 +19,14 @@ const (
 	SourcePermataVA  PaymentType = "permata_va"
 	SourceBCAVA      PaymentType = "bca_va"
 	SourceOtherVA    PaymentType = "other_va"
-	SourceEchannel   PaymentType = "echannel"
 	SourceAlfamart   PaymentType = "alfamart"
 	SourceGopay      PaymentType = "gopay"
 	SourceAkulaku    PaymentType = "akulaku"
 	SourceOvo        PaymentType = "ovo"
 	SourceDana       PaymentType = "dana"
 	SourceLinkAja    PaymentType = "linkaja"
+	SourceBRIVA      PaymentType = "bri_va"
+	SourceMandiriVA  PaymentType = "mandiri_va"
 )
 
 // Bank is a bank

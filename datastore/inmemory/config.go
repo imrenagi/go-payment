@@ -78,8 +78,9 @@ func (r PaymentConfigRepository) FindByPaymentType(ctx context.Context, paymentT
 	case payment.SourceBCAVA,
 		payment.SourcePermataVA,
 		payment.SourceBNIVA,
+		payment.SourceBRIVA,
 		payment.SourceOtherVA,
-		payment.SourceEchannel:
+		payment.SourceMandiriVA:
 		for _, bt := range r.config.BankTransfers {
 			if bt.PaymentType == paymentType {
 				return &bt, nil
