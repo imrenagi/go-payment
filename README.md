@@ -291,8 +291,8 @@ bank_transfers:
 You need to set these mandatory environment variables to make sure this proxy to work.
 
 ```bash
-# ENVIRONMENT can be either staging or production
-export ENVIRONMENT=staging
+# ENVIRONMENT can be either staging or prod
+export ENVIRONMENT=staging #use prod for production
 export LOG_LEVEL=DEBUG
 export SERVER_BASE_URL="http://localhost:8080"
 export WEB_BASE_URL="https://imrenagi.com"
