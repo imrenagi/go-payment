@@ -114,8 +114,7 @@ func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoi
 			PaymentURL:    xres.CheckoutURL,
 			TransactionID: xres.EWalletTransactionID,
 		}, nil
-	case payment.SourceOvo,
-		payment.SourceAlfamart:
+	default:
 		invoiceRequest, err := factory.NewInvoiceRequestFromInvoice(inv)
 		if err != nil {
 			return nil, err
