@@ -194,16 +194,7 @@ func (Invoice) TableName() string {
 
 // SetItem set the informations of the invoice item
 func (i *Invoice) SetItem(ctx context.Context, item LineItem) error {
-	i.LineItem = &LineItem{
-		InvoiceID:    i.ID,
-		Name:         item.Name,
-		Category:     item.Category,
-		MerchantName: item.MerchantName,
-		Currency:     item.Currency,
-		UnitPrice:    item.UnitPrice,
-		Qty:          1,
-	}
-
+	i.LineItem = &item
 	i.SubTotal = i.LineItem.SubTotal()
 	return nil
 }
