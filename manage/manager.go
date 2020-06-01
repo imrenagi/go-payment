@@ -122,15 +122,20 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 	}
 
 	inv := invoice.NewDefault()
-	if err = inv.SetItem(ctx, *invoice.NewLineItem(
-		gir.Item.Name,
-		gir.Item.Category,
-		gir.Item.MerchantName,
-		gir.Item.Description,
-		gir.Item.Price,
-		gir.Item.Qty,
-		gir.Item.Currency,
-	)); err != nil {
+	var items []invoice.LineItem
+	for _, item := range gir.Items {
+		i := invoice.NewLineItem(
+			item.Name,
+			item.Category,
+			item.MerchantName,
+			item.Description,
+			item.Price,
+			item.Qty,
+			item.Currency,
+		)
+		items = append(items, *i)
+	}
+	if err = inv.SetItems(ctx, items); err != nil {
 		return nil, err
 	}
 

@@ -1,3 +1,5 @@
+//go:generate mockery -dir . -name FeeConfigReader -output ./mocks -filename fee_reader.go
+
 package config
 
 import (

@@ -3,6 +3,7 @@ package xendit
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/imrenagi/go-payment/invoice"
@@ -59,13 +60,17 @@ func (b *RecurringChargeRequestBuilder) SetCustomerData(inv *invoice.Invoice) *R
 
 func (b *RecurringChargeRequestBuilder) SetItemDetails(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
 
-	if inv.LineItem == nil {
+	if inv.LineItems == nil || len(inv.LineItems) == 0 {
 		return b
 	}
 
-	b.request.Description = fmt.Sprintf("%s (%dx): %s",
-		inv.LineItem.Name, inv.LineItem.Qty, inv.LineItem.Description)
+	var sb strings.Builder
+	for _, item := range inv.LineItems {
+		fmt.Fprintf(&sb, "- ")
+		fmt.Fprintf(&sb, "%dx %s: %s.", item.Qty, item.Name, item.Description)
+	}
 
+	b.request.Description = sb.String()
 	return b
 }
 

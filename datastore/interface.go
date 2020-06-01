@@ -1,3 +1,5 @@
+//go:generate mockery -dir . -name PaymentConfigReader -output ./mocks -filename config_reader.go
+
 package datastore
 
 import (

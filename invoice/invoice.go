@@ -50,7 +50,7 @@ type Invoice struct {
 	InstallmentFee  float64         `json:"-"`
 	State           State           `json:"-"`
 	StateController StateController `json:"-" gorm:"-"`
-	LineItem        *LineItem       `json:"item"`
+	LineItems       []LineItem      `json:"items"`
 	Payment         *Payment        `json:"payment" gorm:"ForeignKey:InvoiceID"`
 	BillingAddress  *BillingAddress `json:"billing_address" gorm:"ForeignKey:InvoiceID"`
 }
@@ -114,7 +114,7 @@ func (i *Invoice) Clear() {
 	i.ServiceFee = 0
 	i.InstallmentFee = 0
 	i.State = Draft
-	i.LineItem = nil
+	i.LineItems = []LineItem{}
 	i.Payment = nil
 }
 
@@ -145,10 +145,13 @@ func (i *Invoice) UpsertBillingAddress(name, email, phoneNumber string) error {
 // UpdatePaymentMethod set the payment method and recalculate the service and installment fee
 // of the invoice
 func (i *Invoice) UpdatePaymentMethod(ctx context.Context, payment *Payment, finder paymentMethodFinder, opts ...payment.Option) error {
-	if payment != nil {
-		i.Payment = payment
-		i.Payment.InvoiceID = i.ID
+
+	if payment == nil {
+		return InvoiceError{InvoiceErrorPaymentMethodNotSet}
 	}
+
+	i.Payment = payment
+	i.Payment.InvoiceID = i.ID
 
 	feeCalculator, err := finder.FindByPaymentType(ctx, i.Payment.PaymentType, opts...)
 	if err != nil {
@@ -192,10 +195,10 @@ func (Invoice) TableName() string {
 	return "invoices"
 }
 
-// SetItem set the informations of the invoice item
-func (i *Invoice) SetItem(ctx context.Context, item LineItem) error {
-	i.LineItem = &item
-	i.SubTotal = i.LineItem.SubTotal()
+// SetItems set the informations of the invoice item
+func (i *Invoice) SetItems(ctx context.Context, items []LineItem) error {
+	i.LineItems = items
+	i.SubTotal = i.GetSubTotal()
 	return nil
 }
 
@@ -216,7 +219,11 @@ func (i *Invoice) RemoveDiscount() error {
 
 // GetSubTotal returns to total price of all items within the invoice
 func (i *Invoice) GetSubTotal() float64 {
-	return i.LineItem.SubTotal()
+	var sum float64
+	for _, item := range i.LineItems {
+		sum += item.SubTotal()
+	}
+	return sum
 }
 
 // SetState set the invoice state to the given state

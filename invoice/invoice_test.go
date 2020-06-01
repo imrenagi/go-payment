@@ -7,8 +7,11 @@ import (
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/config"
+	cfgm "github.com/imrenagi/go-payment/config/mocks"
+	dsm "github.com/imrenagi/go-payment/datastore/mocks"
 	. "github.com/imrenagi/go-payment/invoice"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func emptyInvoice() *Invoice {
@@ -34,7 +37,7 @@ func TestNewInvoice(t *testing.T) {
 	assert.Equal(t, float64(0), i.InstallmentFee)
 	assert.Equal(t, Draft, i.State)
 	assert.NotNil(t, i.StateController)
-	assert.Nil(t, i.LineItem)
+	assert.Nil(t, i.LineItems)
 	assert.Empty(t, i.BillingAddress)
 
 }
@@ -79,7 +82,7 @@ func TestInvoice_Clear(t *testing.T) {
 	assert.Equal(t, float64(0), i.ServiceFee)
 	assert.Equal(t, float64(0), i.InstallmentFee)
 	assert.Equal(t, Draft, i.State)
-	assert.Nil(t, i.LineItem)
+	assert.Empty(t, i.LineItems)
 	assert.Nil(t, i.Payment)
 }
 
@@ -113,14 +116,6 @@ func TestInvoice_UpsertBillingAddress(t *testing.T) {
 		assert.Equal(t, "08123", i.BillingAddress.PhoneNumber)
 	})
 
-}
-
-func TestInvoice_UpdatePaymentMethod(t *testing.T) {
-	i := emptyInvoice()
-	i.UpdatePaymentMethod(&Payment{
-		PaymentType: payment.SourceBNIVA,
-	})
-	assert.NotNil(t, i.Payment)
 }
 
 type mockFeeReader struct {
@@ -163,79 +158,94 @@ func (f mockPaymentMethodFinder) FindByPaymentType(ctx context.Context, paymentT
 	return &m, nil
 }
 
-func TestInvoice_UpdateFee(t *testing.T) {
+func TestInvoice_UpdatePaymentMethod(t *testing.T) {
 
-	t.Run("should error if payment method is not chosen", func(t *testing.T) {
-
-		finder := mockPaymentMethodFinder{
-			AdminFee: &config.Fee{
-				CurrencyVal: 1000,
-			},
-		}
-
+	t.Run("should error if payment method is empty", func(t *testing.T) {
 		i := emptyInvoice()
-
-		err := i.UpdateFee(context.TODO(), &finder)
-		assert.Equal(t, float64(0), i.ServiceFee)
-		assert.Equal(t, float64(0), i.InstallmentFee)
+		err := i.UpdatePaymentMethod(context.TODO(), nil, nil)
 		assert.NotNil(t, err)
 		assert.Error(t, InvoiceError{InvoiceErrorPaymentMethodNotSet})
 	})
 
 	t.Run("should update fee with installment and admin fee", func(t *testing.T) {
 
-		finder := mockPaymentMethodFinder{
-			AdminFee: &config.Fee{
-				CurrencyVal: 1000,
-			},
-			InstallmentFee: &config.Fee{
-				CurrencyVal: 2000,
-			},
-		}
-
 		i := emptyInvoice()
-		i.UpdatePaymentMethod(&Payment{
-			PaymentType: payment.SourceBNIVA,
-		})
 
-		assert.Equal(t, float64(0), i.ServiceFee)
-		assert.Equal(t, float64(0), i.InstallmentFee)
-		err := i.UpdateFee(context.TODO(), &finder)
+		feeMock := &cfgm.FeeConfigReader{}
+		readerMock := &dsm.PaymentConfigReader{}
+
+		readerMock.On("FindByPaymentType", mock.Anything, mock.Anything, mock.Anything).
+			Return(feeMock, nil)
+
+		feeMock.On("GetAdminFeeConfig", mock.Anything).Return(
+			&config.Fee{
+				PercentageVal: 0,
+				CurrencyVal:   1000,
+				Currency:      "IDR",
+			}, nil)
+		feeMock.On("GetInstallmentFeeConfig", mock.Anything).Return(
+			&config.Fee{
+				PercentageVal: 0,
+				CurrencyVal:   2000,
+				Currency:      "IDR",
+			}, nil)
+
+		i.UpdatePaymentMethod(context.TODO(), &Payment{
+			PaymentType: payment.SourceBNIVA,
+		}, readerMock)
+		assert.NotNil(t, i.Payment)
 		assert.Equal(t, float64(1000), i.ServiceFee)
 		assert.Equal(t, float64(2000), i.InstallmentFee)
-		assert.Nil(t, err)
 	})
 
 }
 
 func TestInvoice_SetItem(t *testing.T) {
 
+	item := LineItem{
+		Name:         "",
+		Category:     "COURSE",
+		MerchantName: "Collegos",
+		Currency:     "IDR",
+		UnitPrice:    10000,
+		Qty:          1,
+	}
+
 	t.Run("add new item", func(t *testing.T) {
 		i := emptyInvoice()
-		assert.Nil(t, i.LineItem)
+		assert.Empty(t, i.LineItems)
 
-		item := LineItem{
-			Name:         "",
-			Category:     "COURSE",
-			MerchantName: "Collegos",
-			Currency:     "IDR",
-			UnitPrice:    10000,
-			Qty:          1,
-		}
-
-		err := i.SetItem(context.TODO(), item)
+		err := i.SetItems(context.TODO(), []LineItem{item})
 		assert.Nil(t, err)
-		assert.NotNil(t, i.LineItem)
-		assert.Equal(t, &LineItem{
-			InvoiceID:    uint64(1),
+		assert.NotNil(t, i.LineItems)
+		assert.Equal(t, LineItem{
 			Name:         "",
 			Category:     "COURSE",
 			MerchantName: "Collegos",
 			Currency:     "IDR",
 			UnitPrice:    10000,
 			Qty:          1,
-		}, i.LineItem)
+		}, i.LineItems[0])
 		assert.Equal(t, float64(10000), i.GetSubTotal())
+	})
+
+	t.Run("add multiple items", func(t *testing.T) {
+		i := emptyInvoice()
+		assert.Empty(t, i.LineItems)
+
+		err := i.SetItems(context.TODO(), []LineItem{item, item})
+		assert.Nil(t, err)
+		assert.NotNil(t, i.LineItems)
+		assert.Equal(t, LineItem{
+			Name:         "",
+			Category:     "COURSE",
+			MerchantName: "Collegos",
+			Currency:     "IDR",
+			UnitPrice:    10000,
+			Qty:          1,
+		}, i.LineItems[0])
+		assert.Len(t, i.LineItems, 2)
+		assert.Equal(t, float64(20000), i.GetSubTotal())
 	})
 
 }
@@ -250,10 +260,32 @@ func TestInvoice_Publish(t *testing.T) {
 	})
 
 	t.Run("can't published because billing address is not set", func(t *testing.T) {
+
 		i := emptyInvoice()
-		i.UpdatePaymentMethod(&Payment{
+
+		feeMock := &cfgm.FeeConfigReader{}
+		readerMock := &dsm.PaymentConfigReader{}
+
+		readerMock.On("FindByPaymentType", mock.Anything, mock.Anything, mock.Anything).
+			Return(feeMock, nil)
+
+		feeMock.On("GetAdminFeeConfig", mock.Anything).Return(
+			&config.Fee{
+				PercentageVal: 0,
+				CurrencyVal:   1000,
+				Currency:      "IDR",
+			}, nil)
+		feeMock.On("GetInstallmentFeeConfig", mock.Anything).Return(
+			&config.Fee{
+				PercentageVal: 0,
+				CurrencyVal:   2000,
+				Currency:      "IDR",
+			}, nil)
+
+		i.UpdatePaymentMethod(context.TODO(), &Payment{
 			PaymentType: payment.SourceBNIVA,
-		})
+		}, readerMock)
+
 		err := i.Publish(context.TODO())
 		assert.NotNil(t, err)
 		assert.Equal(t, InvoiceError{InvoiceErrorBillingAddressNotSet}, err)
