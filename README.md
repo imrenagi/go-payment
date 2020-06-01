@@ -445,7 +445,7 @@ POST /payment/invoices
     "email": "foo@example.com",
     "phone_number": "089922222222"
   },
-  "item": {
+  "items": [{
     "name": "Support Podcast",
     "category": "PODCAST",
     "merchant": "imrenagi.com",
@@ -453,7 +453,7 @@ POST /payment/invoices
     "qty": 1,
     "price": 80001,
     "currency": "IDR"
-  }
+  }]
 }
 ```
 
