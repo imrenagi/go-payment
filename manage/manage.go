@@ -20,7 +20,7 @@ type GenerateInvoiceRequest struct {
 		Email       string `json:"email"`
 		PhoneNumber string `json:"phone_number"`
 	} `json:"customer"`
-	Item struct {
+	Items []struct {
 		Name         string  `json:"name"`
 		Category     string  `json:"category"`
 		MerchantName string  `json:"merchant"`
@@ -28,7 +28,7 @@ type GenerateInvoiceRequest struct {
 		Qty          int     `json:"qty"`
 		Price        float64 `json:"price"`
 		Currency     string  `json:"currency"`
-	} `json:"item"`
+	} `json:"items"`
 }
 
 // PayInvoiceRequest provide information which invoice to pay and by using what

@@ -83,13 +83,13 @@ And this is all you need to know about the basic usage. More advanced options ar
 
 ### Matching Routes
 
-Routes can also be restricted to a domain or subpayment. Just define a host pattern to be matched. They can also have variables:
+Routes can also be restricted to a domain or subdomain. Just define a host pattern to be matched. They can also have variables:
 
 ```go
 r := mux.NewRouter()
 // Only matches if domain is "www.example.com".
 r.Host("www.example.com")
-// Matches a dynamic subpayment.
+// Matches a dynamic subdomain.
 r.Host("{subdomain:[a-z]+}.example.com")
 ```
 

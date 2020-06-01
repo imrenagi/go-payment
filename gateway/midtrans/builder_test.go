@@ -30,6 +30,22 @@ func TestNewSnapRequestBuilder(t *testing.T) {
 	assert.NotNil(t, 1, len(*req.Items))
 }
 
+func TestNewSnapRequestBuilder_LongItemName(t *testing.T) {
+
+	i := dummyInv()
+	i.LineItems[0].Name = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. "
+
+	builder := NewSnapRequestBuilder(i)
+	req, err := builder.Build()
+	if err != nil {
+		t.Logf("expect no error, got %v", err)
+		t.Fail()
+	}
+
+	items := *req.Items
+	assert.Len(t, items[0].Name, 50)
+}
+
 func TestNewSnapRequestBuilder_WithDiscount(t *testing.T) {
 
 	inv := dummyInv()

@@ -285,8 +285,8 @@ func (r *Route) HeadersRegexp(pairs ...string) *Route {
 //
 //     r := mux.NewRouter()
 //     r.Host("www.example.com")
-//     r.Host("{subdomain}.payment.com")
-//     r.Host("{subdomain:[a-z]+}.payment.com")
+//     r.Host("{subdomain}.domain.com")
+//     r.Host("{subdomain:[a-z]+}.domain.com")
 //
 // Variable names must be unique in a given route. They can be retrieved
 // calling mux.Vars(request).
@@ -513,10 +513,10 @@ func (r *Route) Subrouter() *Router {
 //
 //     r := mux.NewRouter()
 //     r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-//       Host("{subdomain}.payment.com").
+//       Host("{subdomain}.domain.com").
 //       Name("article")
 //
-//     // url.String() will be "http://news.payment.com/articles/technology/42"
+//     // url.String() will be "http://news.domain.com/articles/technology/42"
 //     url, err := r.Get("article").URL("subdomain", "news",
 //                                      "category", "technology",
 //                                      "id", "42")

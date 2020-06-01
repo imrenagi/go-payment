@@ -32,34 +32,26 @@ type SnapRequestBuilder struct {
 	snapRequest *gomidtrans.SnapReq
 }
 
-func (srb *SnapRequestBuilder) concatProductName(provider, product string) string {
-
-	sProviderName := provider
-	if len(provider) > 10 {
-		runes := []rune(provider)
-		sProviderName = fmt.Sprintf("%s...", string(runes[0:10]))
-	}
-
-	sProductName := product
-	if len(product) > 30 {
-		runes := []rune(product)
-		sProductName = fmt.Sprintf("%s...", string(runes[0:30]))
-	}
-
-	return fmt.Sprintf("%s - %s", sProviderName, sProductName)
-}
-
 func (srb *SnapRequestBuilder) SetItemDetails(inv *invoice.Invoice) *SnapRequestBuilder {
 	var out []gomidtrans.ItemDetail
-	i := inv.LineItem
-	out = append(out, gomidtrans.ItemDetail{
-		ID:           i.Category,
-		Name:         i.Name,
-		Price:        int64(i.UnitPrice),
-		Qty:          int32(i.Qty),
-		Category:     i.Category,
-		MerchantName: i.MerchantName,
-	})
+
+	for _, item := range inv.LineItems {
+
+		name := item.Name
+		if len(item.Name) > 50 {
+			runes := []rune(name)
+			name = fmt.Sprintf("%s", string(runes[0:50]))
+		}
+
+		out = append(out, gomidtrans.ItemDetail{
+			ID:           item.Category,
+			Name:         name,
+			Price:        int64(item.UnitPrice),
+			Qty:          int32(item.Qty),
+			Category:     item.Category,
+			MerchantName: item.MerchantName,
+		})
+	}
 
 	if inv.ServiceFee > 0 {
 		out = append(out, gomidtrans.ItemDetail{

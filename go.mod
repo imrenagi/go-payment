@@ -1,4 +1,5 @@
 module github.com/imrenagi/go-payment
+
 go 1.14
 
 require (
@@ -15,9 +16,10 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/rs/zerolog v1.18.0
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
-	github.com/spf13/cobra v0.0.7
+	github.com/spf13/cobra v0.0.7 // indirect
 	github.com/spf13/viper v1.6.2
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.0
+	github.com/vektra/mockery v1.1.2 // indirect
 	github.com/veritrans/go-midtrans v0.0.0-20200303064216-54da2d269748
 	github.com/xendit/xendit-go v0.3.0
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect

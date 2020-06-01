@@ -29,16 +29,20 @@ type EWalletRequestBuilder struct {
 }
 
 func (b *EWalletRequestBuilder) SetItemDetails(inv *invoice.Invoice) *EWalletRequestBuilder {
-	if inv.LineItem == nil {
+	if inv.LineItems == nil {
 		return b
 	}
+
 	var out []ewallet.Item
-	out = append(out, ewallet.Item{
-		ID:       inv.LineItem.Category,
-		Name:     inv.LineItem.Name,
-		Price:    inv.LineItem.UnitPrice,
-		Quantity: inv.LineItem.Qty,
-	})
+	for _, item := range inv.LineItems {
+		out = append(out, ewallet.Item{
+			ID:       item.Category,
+			Name:     item.Name,
+			Price:    item.UnitPrice,
+			Quantity: item.Qty,
+		})
+	}
+
 	b.request.Items = out
 	return b
 }

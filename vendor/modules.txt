@@ -36,8 +36,6 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/inconshreveable/mousetrap v1.0.0
-github.com/inconshreveable/mousetrap
 # github.com/jinzhu/gorm v1.9.12
 ## explicit
 github.com/jinzhu/gorm
@@ -76,7 +74,6 @@ github.com/spf13/afero/mem
 github.com/spf13/cast
 # github.com/spf13/cobra v0.0.7
 ## explicit
-github.com/spf13/cobra
 # github.com/spf13/jwalterweatherman v1.0.0
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.3
@@ -84,11 +81,16 @@ github.com/spf13/pflag
 # github.com/spf13/viper v1.6.2
 ## explicit
 github.com/spf13/viper
-# github.com/stretchr/testify v1.5.1
+# github.com/stretchr/objx v0.2.0
+github.com/stretchr/objx
+# github.com/stretchr/testify v1.6.0
 ## explicit
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/mock
 # github.com/subosito/gotenv v1.2.0
 github.com/subosito/gotenv
+# github.com/vektra/mockery v1.1.2
+## explicit
 # github.com/veritrans/go-midtrans v0.0.0-20200303064216-54da2d269748 => github.com/schoters/go-midtrans v0.0.0-20200301123106-412075ea875d
 ## explicit
 github.com/veritrans/go-midtrans
@@ -122,3 +124,5 @@ gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.2.8
 ## explicit
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3

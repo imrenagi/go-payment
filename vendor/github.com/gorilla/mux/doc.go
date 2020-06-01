@@ -65,14 +65,14 @@ when capturing groups were present.
 And this is all you need to know about the basic usage. More advanced options
 are explained below.
 
-Routes can also be restricted to a domain or subpayment. Just define a host
+Routes can also be restricted to a domain or subdomain. Just define a host
 pattern to be matched. They can also have variables:
 
 	r := mux.NewRouter()
 	// Only matches if domain is "www.example.com".
 	r.Host("www.example.com")
-	// Matches a dynamic subpayment.
-	r.Host("{subdomain:[a-z]+}.payment.com")
+	// Matches a dynamic subdomain.
+	r.Host("{subdomain:[a-z]+}.domain.com")
 
 There are several other matchers that can be added. To match path prefixes:
 
@@ -191,13 +191,13 @@ key/value pairs for the route variables. For the previous route, we would do:
 This also works for host and query value variables:
 
 	r := mux.NewRouter()
-	r.Host("{subdomain}.payment.com").
+	r.Host("{subdomain}.domain.com").
 	  Path("/articles/{category}/{id:[0-9]+}").
 	  Queries("filter", "{filter}").
 	  HandlerFunc(ArticleHandler).
 	  Name("article")
 
-	// url.String() will be "http://news.payment.com/articles/technology/42?filter=gorilla"
+	// url.String() will be "http://news.domain.com/articles/technology/42?filter=gorilla"
 	url, err := r.Get("article").URL("subdomain", "news",
 	                                 "category", "technology",
 	                                 "id", "42",
@@ -219,7 +219,7 @@ There's also a way to build only the URL host or path for a route:
 use the methods URLHost() or URLPath() instead. For the previous route,
 we would do:
 
-	// "http://news.payment.com/"
+	// "http://news.domain.com/"
 	host, err := r.Get("article").URLHost("subdomain", "news")
 
 	// "/articles/technology/42"
@@ -229,12 +229,12 @@ And if you use subrouters, host and path defined separately can be built
 as well:
 
 	r := mux.NewRouter()
-	s := r.Host("{subdomain}.payment.com").Subrouter()
+	s := r.Host("{subdomain}.domain.com").Subrouter()
 	s.Path("/articles/{category}/{id:[0-9]+}").
 	  HandlerFunc(ArticleHandler).
 	  Name("article")
 
-	// "http://news.payment.com/articles/technology/42"
+	// "http://news.domain.com/articles/technology/42"
 	url, err := r.Get("article").URL("subdomain", "news",
 	                                 "category", "technology",
 	                                 "id", "42")

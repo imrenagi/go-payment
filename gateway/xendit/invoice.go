@@ -50,12 +50,17 @@ func (b *InvoiceRequestBuilder) SetCustomerData(inv *invoice.Invoice) *InvoiceRe
 
 func (b *InvoiceRequestBuilder) SetItemDetails(inv *invoice.Invoice) *InvoiceRequestBuilder {
 
-	if inv.LineItem == nil {
+	if inv.LineItems == nil || len(inv.LineItems) == 0 {
 		return b
 	}
 
-	b.request.Description = fmt.Sprintf("%s (%dx): %s",
-		inv.LineItem.Name, inv.LineItem.Qty, inv.LineItem.Description)
+	var sb strings.Builder
+	for _, item := range inv.LineItems {
+		fmt.Fprintf(&sb, "- ")
+		fmt.Fprintf(&sb, "%dx %s: %s.", item.Qty, item.Name, item.Description)
+	}
+
+	b.request.Description = sb.String()
 
 	return b
 }

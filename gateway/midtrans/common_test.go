@@ -15,16 +15,17 @@ func dummyInv() *invoice.Invoice {
 	i.SubTotal = 5000
 	i.UpsertBillingAddress("Foo", "foo@bar.com", "0812312412")
 
-	i.SetItem(context.TODO(),
-		invoice.LineItem{
-			InvoiceID:    1,
-			Name:         "Terjemahan B",
-			Category:     "TRANSLATION",
-			MerchantName: "Collegos",
-			Currency:     "IDR",
-			UnitPrice:    5000,
-			Qty:          1,
-		},
+	i.SetItems(context.TODO(),
+		[]invoice.LineItem{
+			invoice.LineItem{
+				InvoiceID:    1,
+				Name:         "Terjemahan B",
+				Category:     "TRANSLATION",
+				MerchantName: "Collegos",
+				Currency:     "IDR",
+				UnitPrice:    5000,
+				Qty:          1,
+			}},
 	)
 
 	return i
