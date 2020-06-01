@@ -73,11 +73,9 @@ In general, this payment proxy can support payment through this following channe
 - You can opt-in to store payment notification callback to your database. Currently it only stores midtrans transaction status. Support for xendit will be added soon.
 
 ## Current Limitations
-
-1. This proxy only support 1 item per invoice. Support for multiple items per invoice is not priority as of now.
 1. For simplify the query creation for database join, I use [gorm.io](https://gorm.io/) as the ORM library. The repository interfaces are provided indeed. However, default implementations with [gorm.io](https://gorm.io/) for several entities are provided in `datastore/mysql` package.
 1. This proxy is not made for supporting all use cases available out there. It's hard requirement is just so that people can accept payment with as low effort as possible without need to worry about custom UI flow.
-1. No callback trigger at least of now once the payment manager is done procesing this request. This will be the next priority of the next release.
+1. No callback trigger at least of now once the payment manager is done procesing this request. This will be the next priority of the next release. This issue is documented [here](https://github.com/imrenagi/go-payment/issues/5)
 
 ## Implemented Channels
 

@@ -12,7 +12,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"ovo\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"item\": {\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.com\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 80001,\n\t\t\"currency\": \"IDR\"\n\t}\n}",
+					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"alfamart\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -20,11 +20,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8080/payment/invoices",
+					"raw": "{{base_url}}/payment/invoices",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "8080",
 					"path": [
 						"payment",
 						"invoices"
@@ -41,7 +40,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"item\": {\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.com\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 80001,\n\t\t\"currency\": \"IDR\"\n\t}\n}",
+					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -69,7 +68,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\",\n\t\t\"credit_card\": {\n\t\t\t\"bank\": \"bca\",\n\t\t\t\"installment\": {\n\t\t\t\t\"type\": \"offline\",\n\t\t\t\t\"term\": 3\n\t\t\t}\n\t\t}\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"item\": {\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.com\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 80001,\n\t\t\"currency\": \"IDR\"\n\t}\n}",
+					"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\",\n\t\t\"credit_card\": {\n\t\t\t\"bank\": \"bca\",\n\t\t\t\"installment\": {\n\t\t\t\t\"type\": \"offline\",\n\t\t\t\t\"term\": 3\n\t\t\t}\n\t\t}\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
