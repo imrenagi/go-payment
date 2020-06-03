@@ -19,21 +19,21 @@ func New() *Subscription {
 		Recharge:            true,
 		ShouldSendEmail:     true,
 		InvoiceDuration:     7 * 24 * time.Hour,
-		Invoices:            make([]invoice.Invoice, 0),
-		ChargeImmediately:   false,
+		// Invoices:            make([]invoice.Invoice, 0),
+		ChargeImmediately: false,
 	}
 }
 
 // Subscription is object recording the recurring payment
 type Subscription struct {
 	payment.Model
-	Number              string              `json:"number"`
+	Number              string              `json:"number" gorm:"unique_index:subs_number_k"`
 	Name                string              `json:"name"`
-	Description         string              `json:"description"`
+	Description         string              `json:"description" gorm:"type:text"`
 	Amount              float64             `json:"amount"`
 	UserID              string              `json:"user_id"`
 	Currency            string              `json:"currency"`
-	Schedule            Schedule            `json:"schedule"`
+	Schedule            Schedule            `json:"schedule" gorm:"ForeignKey:SubscriptionID"`
 	TotalReccurence     int                 `json:"total_recurrence"`
 	InvoiceDuration     time.Duration       `json:"invoice_duration"`
 	ShouldSendEmail     bool                `json:"should_send_email"`
@@ -42,7 +42,8 @@ type Subscription struct {
 	CardToken           string              `json:"card_token"`
 	GatewayRecurringID  string              `json:"gateway_recurring_id"`
 	Gateway             string              `json:"gateway"`
-	Invoices            []invoice.Invoice   `json:"invoices"`
+	// TODO need to link invoice to subscription later on
+	// Invoices            []invoice.Invoice   `json:"invoices"`
 	// ChargeImmediately will create first invoice no matter
 	// what the startat value is
 	ChargeImmediately  bool   `json:"charge_immediately"`

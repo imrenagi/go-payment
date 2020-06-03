@@ -58,6 +58,14 @@ func (m *Manager) MustInvoiceRepository(repo datastore.InvoiceRepository) {
 	m.invoiceRepository = repo
 }
 
+// MustSubscriptionRepository mandatory mapping the subscription repository
+func (m *Manager) MustSubscriptionRepository(repo datastore.SubscriptionRepository) {
+	if repo == nil {
+		panic(fmt.Errorf("invoice repository can't be nil"))
+	}
+	m.subscriptionRepository = repo
+}
+
 // MustPaymentConfigReader mandatory mapping for payment config repository
 func (m *Manager) MustPaymentConfigReader(repo datastore.PaymentConfigReader) {
 	if repo == nil {
@@ -243,6 +251,10 @@ func (m *Manager) CreateSubscription(ctx context.Context, csr *CreateSubscriptio
 	s := csr.ToSubscription()
 
 	if err := s.Start(ctx, m.subscriptionController(payment.GatewayXendit)); err != nil {
+		return nil, err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, s); err != nil {
 		return nil, err
 	}
 

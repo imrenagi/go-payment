@@ -35,4 +35,5 @@ type PaymentConfigReader interface {
 // SubscriptionRepository is an interface for subscription store
 type SubscriptionRepository interface {
 	Save(ctx context.Context, subs *subscription.Subscription) error
+	FindByNumber(ctx context.Context, number string) (*subscription.Subscription, error)
 }

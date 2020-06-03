@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/imrenagi/go-payment/subscription"
+
 	"github.com/gorilla/mux"
 	"github.com/imrenagi/go-payment/datastore/inmemory"
 	dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
@@ -31,11 +33,14 @@ func main() {
 		&invoice.CreditCardDetail{},
 		&invoice.LineItem{},
 		&invoice.BillingAddress{},
+		&subscription.Subscription{},
+		&subscription.Schedule{},
 	)
 
 	m := manage.NewManager(secret.Payment)
 	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
 	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
+	m.MustSubscriptionRepository(dsmysql.NewSubscriptionRepository(db))
 	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yaml"))
 
 	srv := srv{
@@ -47,7 +52,6 @@ func main() {
 	if err := http.ListenAndServe(":8080", srv.GetHandler()); err != nil {
 		log.Fatal().Msgf("Server can't run. Got: `%v`", err)
 	}
-
 }
 
 type srv struct {
