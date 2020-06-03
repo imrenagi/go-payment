@@ -2,6 +2,9 @@ package manage
 
 import (
 	"context"
+	"time"
+
+	"github.com/imrenagi/go-payment/subscription"
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/gateway/xendit"
@@ -45,6 +48,39 @@ type FailInvoiceRequest struct {
 	Reason        string `json:"reason"`
 }
 
+type CreateSubscriptionRequest struct {
+	Name            string  `json:"name"`
+	Description     string  `json:"description"`
+	Amount          float64 `json:"amount"`
+	UserID          string  `json:"user_id"`
+	Currency        string  `json:"currency"`
+	TotalReccurence int     `json:"total_recurrence"`
+	CardToken       string  `json:"card_token"`
+	Schedule        struct {
+		Interval     int        `json:"interval"`
+		IntervalUnit string     `json:"interval_unit"`
+		StartAt      *time.Time `json:"start_at"`
+	} `json:"schedule"`
+}
+
+// ToSubscription creates new subscription instance
+func (csr CreateSubscriptionRequest) ToSubscription() *subscription.Subscription {
+	s := subscription.New()
+	s.Name = csr.Name
+	s.Description = csr.Description
+	s.Amount = csr.Amount
+	s.Currency = csr.Currency
+	s.UserID = csr.UserID
+	s.TotalReccurence = csr.TotalReccurence
+	s.CardToken = csr.CardToken
+	s.Schedule = subscription.Schedule{
+		Interval:     csr.Schedule.Interval,
+		IntervalUnit: subscription.NewIntervalUnit(csr.Schedule.IntervalUnit),
+		StartAt:      csr.Schedule.StartAt,
+	}
+	return s
+}
+
 // Interface payment management interface
 type Interface interface {
 	// return the payment methods available in payment service
@@ -64,6 +100,9 @@ type Interface interface {
 
 	// FailInvoice make the invoice failed
 	FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*invoice.Invoice, error)
+
+	// CreateSubscription creates new subscription
+	CreateSubscription(ctx context.Context, csr *CreateSubscriptionRequest) (*subscription.Subscription, error)
 }
 
 // XenditProcessor callback handler for xendit

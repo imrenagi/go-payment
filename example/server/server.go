@@ -36,7 +36,7 @@ func main() {
 	m := manage.NewManager(secret.Payment)
 	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
 	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
-	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yml"))
+	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yaml"))
 
 	srv := srv{
 		Router:     mux.NewRouter(),
@@ -85,4 +85,5 @@ func (s srv) routes() {
 	s.Router.HandleFunc("/payment/xendit/ovo/callback", s.paymentSrv.XenditOVOCallbackHandler()).Methods("POST")
 	s.Router.HandleFunc("/payment/xendit/dana/callback", s.paymentSrv.XenditDanaCallbackHandler()).Methods("POST")
 	s.Router.HandleFunc("/payment/xendit/linkaja/callback", s.paymentSrv.XenditLinkAjaCallbackHandler()).Methods("POST")
+	s.Router.HandleFunc("/payment/subscriptions", s.paymentSrv.CreateSubscriptionHandler()).Methods("POST")
 }

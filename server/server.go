@@ -92,6 +92,24 @@ func (s Server) CreateInvoiceHandler() http.HandlerFunc {
 	}
 }
 
+// CreateSubscriptionHandler handles request for creating new subscription
+func (s Server) CreateSubscriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req manage.CreateSubscriptionRequest
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			WriteFailResponse(w, http.StatusBadRequest, Error{StatusCode: http.StatusBadRequest, Message: err.Error()})
+			return
+		}
+		subs, err := s.Manager.CreateSubscription(r.Context(), &req)
+		if err != nil {
+			WriteFailResponseFromError(w, err)
+			return
+		}
+		WriteSuccessResponse(w, http.StatusOK, subs, nil)
+	}
+}
+
 // MidtransTransactionCallbackHandler handles incoming notification about payment status from midtrans.
 func (s *Server) MidtransTransactionCallbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
