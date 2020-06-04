@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"strings"
+	"time"
 )
 
 // MissedPaymentAction defines action should be taken
@@ -27,6 +28,17 @@ const (
 	// IntervalUnitMonth ...
 	IntervalUnitMonth IntervalUnit = "month"
 )
+
+func (iu IntervalUnit) Duration() time.Duration {
+	switch iu {
+	case IntervalUnitDay:
+		return 24 * time.Hour
+	case IntervalUnitWeek:
+		return 24 * 7 * time.Hour
+	default:
+		return 24 * 30 * time.Hour
+	}
+}
 
 // NewIntervalUnit return an IntervalUnit based on the string given
 func NewIntervalUnit(s string) IntervalUnit {

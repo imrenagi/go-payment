@@ -2,6 +2,8 @@ package manage
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/imrenagi/go-payment/subscription"
@@ -49,18 +51,38 @@ type FailInvoiceRequest struct {
 }
 
 type CreateSubscriptionRequest struct {
-	Name            string  `json:"name"`
-	Description     string  `json:"description"`
-	Amount          float64 `json:"amount"`
-	UserID          string  `json:"user_id"`
-	Currency        string  `json:"currency"`
-	TotalReccurence int     `json:"total_recurrence"`
-	CardToken       string  `json:"card_token"`
-	Schedule        struct {
+	Name              string  `json:"name"`
+	Description       string  `json:"description"`
+	Amount            float64 `json:"amount"`
+	UserID            string  `json:"user_id"`
+	Currency          string  `json:"currency"`
+	TotalReccurence   int     `json:"total_recurrence"`
+	CardToken         string  `json:"card_token"`
+	ChargeImmediately bool    `json:"charge_immediately"`
+	Schedule          struct {
 		Interval     int        `json:"interval"`
 		IntervalUnit string     `json:"interval_unit"`
 		StartAt      *time.Time `json:"start_at"`
 	} `json:"schedule"`
+}
+
+// UnmarshalJSON validates some data
+func (csr *CreateSubscriptionRequest) UnmarshalJSON(data []byte) error {
+	type Alias CreateSubscriptionRequest
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(csr),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if !aux.ChargeImmediately && aux.Schedule.StartAt == nil {
+		return fmt.Errorf("either charge it immediately, or set a start_at to send the invoice later: %w", payment.ErrBadRequest)
+	}
+
+	return nil
 }
 
 // ToSubscription creates new subscription instance
@@ -73,12 +95,23 @@ func (csr CreateSubscriptionRequest) ToSubscription() *subscription.Subscription
 	s.UserID = csr.UserID
 	s.TotalReccurence = csr.TotalReccurence
 	s.CardToken = csr.CardToken
+	s.ChargeImmediately = csr.ChargeImmediately
 	s.Schedule = subscription.Schedule{
 		Interval:     csr.Schedule.Interval,
 		IntervalUnit: subscription.NewIntervalUnit(csr.Schedule.IntervalUnit),
-		StartAt:      csr.Schedule.StartAt,
+		StartAt:      csr.StartAt(),
 	}
 	return s
+}
+
+// StartAt return the first time for generating the invoice. If it is charged immediately, start at will be
+// now, otherwise it will be the start at send by user
+func (csr CreateSubscriptionRequest) StartAt() *time.Time {
+	now := time.Now()
+	if csr.ChargeImmediately {
+		csr.Schedule.StartAt = &now
+	}
+	return csr.Schedule.StartAt
 }
 
 // Interface payment management interface

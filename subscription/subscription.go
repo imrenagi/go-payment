@@ -3,6 +3,7 @@ package subscription
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,8 +20,7 @@ func New() *Subscription {
 		Recharge:            true,
 		ShouldSendEmail:     true,
 		InvoiceDuration:     7 * 24 * time.Hour,
-		// Invoices:            make([]invoice.Invoice, 0),
-		ChargeImmediately: true,
+		Invoices:            make([]invoice.Invoice, 0),
 	}
 }
 
@@ -56,10 +56,12 @@ func (s *Subscription) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(&struct {
 		*Alias
-		Status string `json:"status"`
+		Status             string `json:"status"`
+		RecurrenceProgress int    `json:"recurrence_progress"`
 	}{
-		Alias:  (*Alias)(s),
-		Status: s.Status.String(),
+		Alias:              (*Alias)(s),
+		Status:             s.Status.String(),
+		RecurrenceProgress: s.recurrenceProgress(),
 	})
 }
 
@@ -78,6 +80,10 @@ func (s *Subscription) Start(ctx context.Context, c creator) error {
 	return nil
 }
 
+func (s Subscription) recurrenceProgress() int {
+	return len(s.Invoices)
+}
+
 func (s *Subscription) Stop() error {
 	return nil
 }
@@ -90,10 +96,16 @@ func (s *Subscription) Resume() error {
 	return nil
 }
 
-func (s *Subscription) AddInvoice(inv *invoice.Invoice) error {
+// Record ...
+func (s *Subscription) Record(inv *invoice.Invoice) error {
+
+	if s.recurrenceProgress() >= s.TotalReccurence {
+		return fmt.Errorf("should not accept more invoice since all invoices has been recorded %w", payment.ErrCantProceed)
+	}
+
 	inv.SubscriptionID = &s.ID
 	s.Invoices = append(s.Invoices, *inv)
-
+	s.Schedule.ScheduleNext()
 	return nil
 }
 
@@ -111,4 +123,18 @@ type Schedule struct {
 	StartAt             *time.Time   `json:"start_at"`
 	PreviousExecutionAt *time.Time   `json:"previous_execution_at"`
 	NextExecutionAt     *time.Time   `json:"next_execution_at"`
+}
+
+// ScheduleNext calculates the next time invoice should be generated
+// and update the previous execution time
+func (s *Schedule) ScheduleNext() {
+	var cur *time.Time
+	if s.PreviousExecutionAt == nil {
+		cur = s.StartAt
+	} else {
+		cur = s.NextExecutionAt
+	}
+	next := cur.Add(time.Duration(s.Interval) * s.IntervalUnit.Duration())
+	s.NextExecutionAt = &next
+	s.PreviousExecutionAt = cur
 }

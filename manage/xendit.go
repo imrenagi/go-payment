@@ -181,9 +181,8 @@ func (m Manager) processXenditRecurringTransactionCallback(ctx context.Context, 
 	}
 
 	if errors.Is(err, payment.ErrNotFound) {
-
 		fee := noAdminFee{payment.GatewayXendit}
-		cfg, _ := fee.FindByPaymentType(ctx, "dc") //dc for dont care
+		cfg, _ := fee.FindByPaymentType(ctx, "")
 		payment, err := invoice.NewPayment(cfg, xendit.NewPaymentSource(ips.PaymentMethod), nil)
 
 		inv = invoice.NewDefault()
@@ -228,7 +227,7 @@ func (m Manager) processXenditRecurringTransactionCallback(ctx context.Context, 
 		}
 	}
 
-	if err := subs.AddInvoice(inv); err != nil {
+	if err := subs.Record(inv); err != nil {
 		return err
 	}
 

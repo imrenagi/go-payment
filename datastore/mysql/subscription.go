@@ -40,6 +40,7 @@ func (r *SubscriptionRepository) FindByNumber(ctx context.Context, number string
 	var subs subscription.Subscription
 	req := r.DB.
 		Preload("Schedule").
+		Preload("Invoices").
 		Where("number = ?", number).Find(&subs)
 
 	if req.RecordNotFound() {

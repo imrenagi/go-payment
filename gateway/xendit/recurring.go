@@ -64,10 +64,10 @@ func (b *RecurringChargeRequestBuilder) SetBasicInfo(s *subscription.Subscriptio
 func (b *RecurringChargeRequestBuilder) Build() (*xrp.CreateParams, error) {
 
 	if b.request.MissedPaymentAction == "" {
-		return nil, fmt.Errorf("unkown missed payment action", payment.ErrBadRequest)
+		return nil, fmt.Errorf("unkown missed payment action %w", payment.ErrBadRequest)
 	}
 	if b.request.Interval == "" {
-		return nil, fmt.Errorf("unkown recurring interval unit", payment.ErrBadRequest)
+		return nil, fmt.Errorf("unkown recurring interval unit %w", payment.ErrBadRequest)
 	}
 
 	return b.request, nil
