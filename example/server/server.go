@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/imrenagi/go-payment/subscription"
+
 	"github.com/gorilla/mux"
 	"github.com/imrenagi/go-payment/datastore/inmemory"
 	dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
@@ -31,12 +33,15 @@ func main() {
 		&invoice.CreditCardDetail{},
 		&invoice.LineItem{},
 		&invoice.BillingAddress{},
+		&subscription.Subscription{},
+		&subscription.Schedule{},
 	)
 
 	m := manage.NewManager(secret.Payment)
 	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
 	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
-	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yml"))
+	m.MustSubscriptionRepository(dsmysql.NewSubscriptionRepository(db))
+	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yaml"))
 
 	srv := srv{
 		Router:     mux.NewRouter(),
@@ -47,7 +52,6 @@ func main() {
 	if err := http.ListenAndServe(":8080", srv.GetHandler()); err != nil {
 		log.Fatal().Msgf("Server can't run. Got: `%v`", err)
 	}
-
 }
 
 type srv struct {
@@ -85,4 +89,5 @@ func (s srv) routes() {
 	s.Router.HandleFunc("/payment/xendit/ovo/callback", s.paymentSrv.XenditOVOCallbackHandler()).Methods("POST")
 	s.Router.HandleFunc("/payment/xendit/dana/callback", s.paymentSrv.XenditDanaCallbackHandler()).Methods("POST")
 	s.Router.HandleFunc("/payment/xendit/linkaja/callback", s.paymentSrv.XenditLinkAjaCallbackHandler()).Methods("POST")
+	s.Router.HandleFunc("/payment/subscriptions", s.paymentSrv.CreateSubscriptionHandler()).Methods("POST")
 }

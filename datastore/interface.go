@@ -5,6 +5,8 @@ package datastore
 import (
 	"context"
 
+	"github.com/imrenagi/go-payment/subscription"
+
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/config"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
@@ -28,4 +30,10 @@ type InvoiceRepository interface {
 type PaymentConfigReader interface {
 	FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error)
 	FindAll(ctx context.Context) (*config.PaymentConfig, error)
+}
+
+// SubscriptionRepository is an interface for subscription store
+type SubscriptionRepository interface {
+	Save(ctx context.Context, subs *subscription.Subscription) error
+	FindByNumber(ctx context.Context, number string) (*subscription.Subscription, error)
 }

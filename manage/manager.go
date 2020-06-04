@@ -10,6 +10,7 @@ import (
 	midgateway "github.com/imrenagi/go-payment/gateway/midtrans"
 	xengateway "github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
+	"github.com/imrenagi/go-payment/subscription"
 	"github.com/imrenagi/go-payment/util/localconfig"
 
 	"github.com/rs/zerolog"
@@ -31,6 +32,7 @@ type Manager struct {
 	midtransGateway          *midgateway.Gateway
 	midTransactionRepository datastore.MidtransTransactionStatusRepository
 	invoiceRepository        datastore.InvoiceRepository
+	subscriptionRepository   datastore.SubscriptionRepository
 	paymentConfigRepository  datastore.PaymentConfigReader
 }
 
@@ -54,6 +56,14 @@ func (m *Manager) MustInvoiceRepository(repo datastore.InvoiceRepository) {
 		panic(fmt.Errorf("invoice repository can't be nil"))
 	}
 	m.invoiceRepository = repo
+}
+
+// MustSubscriptionRepository mandatory mapping the subscription repository
+func (m *Manager) MustSubscriptionRepository(repo datastore.SubscriptionRepository) {
+	if repo == nil {
+		panic(fmt.Errorf("invoice repository can't be nil"))
+	}
+	m.subscriptionRepository = repo
 }
 
 // MustPaymentConfigReader mandatory mapping for payment config repository
@@ -234,4 +244,25 @@ func (m *Manager) FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*in
 		return nil, err
 	}
 	return inv, nil
+}
+
+// CreateSubscription creates new subscription
+func (m *Manager) CreateSubscription(ctx context.Context, csr *CreateSubscriptionRequest) (*subscription.Subscription, error) {
+	s := csr.ToSubscription()
+
+	if err := s.Start(ctx, m.subscriptionController(payment.GatewayXendit)); err != nil {
+		return nil, err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, s); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func (m Manager) subscriptionController(gateway payment.Gateway) subscription.Controller {
+	return &xenditSubscriptionController{
+		XenditGateway: m.xenditGateway,
+	}
 }

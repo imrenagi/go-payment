@@ -55,35 +55,6 @@ type xenditCharger struct {
 
 func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
-	// recurringRequest, err := factory.NewRecurringChargeRequestBuilder(inv).Build()
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// bytes, err := json.MarshalIndent(recurringRequest, "", "\t")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println(string(bytes))
-
-	// xres, err := c.XenditGateway.Recurring.CreateWithContext(ctx, recurringRequest)
-	// var xError *goxendit.Error
-	// if ok := errors.As(err, &xError); ok && xError != nil {
-	// 	return nil, xError
-	// }
-
-	// // TODO change this to active instead of pending.
-	// if xres.Status == "PENDING" {
-	// 	if err := inv.Process(ctx); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
-	// return &invoice.ChargeResponse{
-	// 	PaymentURL:    xres.LastCreatedInvoiceURL,
-	// 	TransactionID: xres.ID,
-	// }, nil
-
 	switch inv.Payment.PaymentType {
 	case payment.SourceLinkAja,
 		payment.SourceDana:

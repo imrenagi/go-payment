@@ -3,78 +3,72 @@ package xendit
 import (
 	"fmt"
 	"os"
-	"strings"
-	"time"
 
-	"github.com/imrenagi/go-payment/invoice"
-	xgo "github.com/xendit/xendit-go"
+	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/subscription"
+
 	xrp "github.com/xendit/xendit-go/recurringpayment"
 )
 
-func NewRecurringChargeRequestBuilder(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
-
-	var truePtr bool = true
+// NewRecurringChargeRequestBuilder builder for building the recurring charge request
+func NewRecurringChargeRequestBuilder(s *subscription.Subscription) *RecurringChargeRequestBuilder {
 
 	b := &RecurringChargeRequestBuilder{
 		request: &xrp.CreateParams{
-			ExternalID:          inv.Number,
-			Interval:            xgo.RecurringPaymentIntervalMonth,
-			ShouldSendEmail:     &truePtr,
-			MissedPaymentAction: xgo.MissedPaymentActionIgnore,
-			Recharge:            &truePtr,
-			ChargeImmediately:   &truePtr,
+			ExternalID:          s.Number,
+			ShouldSendEmail:     &s.ShouldSendEmail,
+			MissedPaymentAction: missedPaymentAction(s.MissedPaymentAction),
+			Recharge:            &s.Recharge,
+			ChargeImmediately:   &s.ChargeImmediately,
 			SuccessRedirectURL:  fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("SUCCESS_REDIRECT_PATH")),
 			FailureRedirectURL:  fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("FAILED_REDIRECT_PATH")),
 		},
 	}
 
-	return b.SetPrice(inv).
-		SetCustomerData(inv).
-		SetItemDetails(inv).
-		SetSubscriptionTime(inv)
+	return b.SetSchedule(s).
+		SetPrice(s).
+		SetBasicInfo(s).
+		SetCustomerData(s)
 }
 
 type RecurringChargeRequestBuilder struct {
 	request *xrp.CreateParams
 }
 
-func (b *RecurringChargeRequestBuilder) SetSubscriptionTime(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
-	// TODO change this based on value from invoice
-	b.request.Interval = xgo.RecurringPaymentIntervalMonth
-	b.request.IntervalCount = 1
-	b.request.InvoiceDuration = int((24 * time.Hour).Seconds())
-	b.request.TotalRecurrence = 0
+func (b *RecurringChargeRequestBuilder) SetSchedule(s *subscription.Subscription) *RecurringChargeRequestBuilder {
+	b.request.StartDate = s.Schedule.StartAt
+	b.request.Interval = paymentIntervalUnit(s.Schedule.IntervalUnit)
+	b.request.IntervalCount = s.Schedule.Interval
+	b.request.InvoiceDuration = int(s.InvoiceDuration.Seconds())
+	b.request.TotalRecurrence = s.TotalReccurence
 
 	return b
 }
 
-func (b *RecurringChargeRequestBuilder) SetPrice(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
-	b.request.Amount = inv.GetTotal()
+func (b *RecurringChargeRequestBuilder) SetPrice(s *subscription.Subscription) *RecurringChargeRequestBuilder {
+	b.request.Amount = s.Amount
 	return b
 }
 
-func (b *RecurringChargeRequestBuilder) SetCustomerData(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
-	b.request.PayerEmail = inv.BillingAddress.Email
+func (b *RecurringChargeRequestBuilder) SetCustomerData(s *subscription.Subscription) *RecurringChargeRequestBuilder {
+	// TODO change this
+	b.request.PayerEmail = s.UserID
 	return b
 }
 
-func (b *RecurringChargeRequestBuilder) SetItemDetails(inv *invoice.Invoice) *RecurringChargeRequestBuilder {
-
-	if inv.LineItems == nil || len(inv.LineItems) == 0 {
-		return b
-	}
-
-	var sb strings.Builder
-	for _, item := range inv.LineItems {
-		fmt.Fprintf(&sb, "- ")
-		fmt.Fprintf(&sb, "%dx %s: %s.", item.Qty, item.Name, item.Description)
-	}
-
-	b.request.Description = sb.String()
+func (b *RecurringChargeRequestBuilder) SetBasicInfo(s *subscription.Subscription) *RecurringChargeRequestBuilder {
+	b.request.Description = fmt.Sprintf("%s: %s", s.Name, s.Description)
 	return b
 }
 
 func (b *RecurringChargeRequestBuilder) Build() (*xrp.CreateParams, error) {
-	// TODO validate the request
+
+	if b.request.MissedPaymentAction == "" {
+		return nil, fmt.Errorf("unkown missed payment action %w", payment.ErrBadRequest)
+	}
+	if b.request.Interval == "" {
+		return nil, fmt.Errorf("unkown recurring interval unit %w", payment.ErrBadRequest)
+	}
+
 	return b.request, nil
 }
