@@ -3,9 +3,12 @@ package manage
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/config"
 	"github.com/imrenagi/go-payment/gateway/xendit"
+	"github.com/imrenagi/go-payment/invoice"
 )
 
 // ProcessDANACallback process dana payment notification from xendit
@@ -121,12 +124,19 @@ func (m *Manager) ProcessXenditInvoicesCallback(ctx context.Context, ips *xendit
 		return err
 	}
 
+	if ips.RecurringPaymentID != "" {
+		return m.processXenditRecurringTransactionCallback(ctx, ips)
+	}
+	return m.processXenditNonRecurringTransactionCallback(ctx, ips)
+}
+
+func (m Manager) processXenditNonRecurringTransactionCallback(ctx context.Context, ips *xendit.InvoicePaymentStatus) error {
 	inv, err := m.GetInvoice(ctx, ips.ExternalID)
 	if err != nil && !errors.Is(err, payment.ErrNotFound) {
 		return err
 	}
 
-	// Need to return no error if callback
+	// Need to return no error if invoice is not found in this case
 	if errors.Is(err, payment.ErrNotFound) {
 		return nil
 	}
@@ -151,4 +161,88 @@ func (m *Manager) ProcessXenditInvoicesCallback(ctx context.Context, ips *xendit
 	}
 
 	return nil
+}
+
+func (m Manager) processXenditRecurringTransactionCallback(ctx context.Context, ips *xendit.InvoicePaymentStatus) error {
+
+	invoiceIDs := strings.Split(ips.ExternalID, "-")
+
+	// external_id from xendit invoice for recurring transaction has format:
+	// <subscription-number>_<timestamp>
+	subscriptionNumber := strings.Join(invoiceIDs[:len(invoiceIDs)-1], "-")
+	subs, err := m.subscriptionRepository.FindByNumber(ctx, subscriptionNumber)
+	if err != nil {
+		return err
+	}
+
+	inv, err := m.invoiceRepository.FindByNumber(ctx, ips.ExternalID)
+	if err != nil && !errors.Is(err, payment.ErrNotFound) {
+		return err
+	}
+
+	if errors.Is(err, payment.ErrNotFound) {
+
+		fee := noAdminFee{payment.GatewayXendit}
+		cfg, _ := fee.FindByPaymentType(ctx, "dc") //dc for dont care
+		payment, err := invoice.NewPayment(cfg, xendit.NewPaymentSource(ips.PaymentMethod), nil)
+
+		inv = invoice.NewDefault()
+		inv.Number = ips.ExternalID
+
+		if err = inv.SetItems(ctx, []invoice.LineItem{
+			*invoice.NewLineItem(
+				"",
+				ips.Description,
+				ips.MerchantName,
+				ips.Description,
+				ips.Amount,
+				1,
+				ips.Currency,
+			),
+		}); err != nil {
+			return err
+		}
+
+		if err = inv.UpsertBillingAddress(ips.PayerEmail, ips.PayerEmail, ""); err != nil {
+			return err
+		}
+
+		if err = inv.UpdatePaymentMethod(ctx, payment, fee); err != nil {
+			return err
+		}
+
+		if err = inv.Publish(ctx); err != nil {
+			return err
+		}
+	}
+
+	if ips.Status == "EXPIRED" {
+		if err := inv.Fail(ctx); err != nil {
+			return err
+		}
+	}
+
+	if ips.Status == "PAID" {
+		if err := inv.Pay(ctx, ips.ExternalID); err != nil {
+			return err
+		}
+	}
+
+	if err := subs.AddInvoice(inv); err != nil {
+		return err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, subs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type noAdminFee struct {
+	gateway payment.Gateway
+}
+
+func (n noAdminFee) FindByPaymentType(ctx context.Context, paymentType payment.PaymentType, opts ...payment.Option) (config.FeeConfigReader, error) {
+	return config.NewFreeFee(n.gateway), nil
 }

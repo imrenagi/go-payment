@@ -7,46 +7,10 @@ import (
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/subscription"
 
-	xgo "github.com/xendit/xendit-go"
 	xrp "github.com/xendit/xendit-go/recurringpayment"
 )
 
-// NewStatus convert xendit status string to subscripiton status
-func NewStatus(s string) subscription.Status {
-	switch s {
-	case "ACTIVE":
-		return subscription.StatusActive
-	case "PAUSED":
-		return subscription.StatusPaused
-	default:
-		return subscription.StatusStop
-	}
-}
-
-func missedPaymentAction(enum subscription.MissedPaymentAction) xgo.MissedPaymentActionEnum {
-	switch enum {
-	case subscription.MissedPaymentActionIgnore:
-		return xgo.MissedPaymentActionIgnore
-	case subscription.MissedPaymentActionStop:
-		return xgo.MissedPaymentActionStop
-	default:
-		return ""
-	}
-}
-
-func paymentIntervalUnit(enum subscription.IntervalUnit) xgo.RecurringPaymentIntervalEnum {
-	switch enum {
-	case subscription.IntervalUnitDay:
-		return xgo.RecurringPaymentIntervalDay
-	case subscription.IntervalUnitWeek:
-		return xgo.RecurringPaymentIntervalWeek
-	case subscription.IntervalUnitMonth:
-		return xgo.RecurringPaymentIntervalMonth
-	default:
-		return ""
-	}
-}
-
+// NewRecurringChargeRequestBuilder builder for building the recurring charge request
 func NewRecurringChargeRequestBuilder(s *subscription.Subscription) *RecurringChargeRequestBuilder {
 
 	b := &RecurringChargeRequestBuilder{

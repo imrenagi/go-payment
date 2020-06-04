@@ -20,7 +20,7 @@ func New() *Subscription {
 		ShouldSendEmail:     true,
 		InvoiceDuration:     7 * 24 * time.Hour,
 		// Invoices:            make([]invoice.Invoice, 0),
-		ChargeImmediately: false,
+		ChargeImmediately: true,
 	}
 }
 
@@ -42,8 +42,7 @@ type Subscription struct {
 	CardToken           string              `json:"card_token"`
 	GatewayRecurringID  string              `json:"gateway_recurring_id"`
 	Gateway             string              `json:"gateway"`
-	// TODO need to link invoice to subscription later on
-	// Invoices            []invoice.Invoice   `json:"invoices"`
+	Invoices            []invoice.Invoice   `json:"invoices"`
 	// ChargeImmediately will create first invoice no matter
 	// what the startat value is
 	ChargeImmediately  bool   `json:"charge_immediately"`
@@ -88,6 +87,13 @@ func (s *Subscription) Pause() error {
 }
 
 func (s *Subscription) Resume() error {
+	return nil
+}
+
+func (s *Subscription) AddInvoice(inv *invoice.Invoice) error {
+	inv.SubscriptionID = &s.ID
+	s.Invoices = append(s.Invoices, *inv)
+
 	return nil
 }
 

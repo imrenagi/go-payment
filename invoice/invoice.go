@@ -53,6 +53,7 @@ type Invoice struct {
 	LineItems       []LineItem      `json:"items"`
 	Payment         *Payment        `json:"payment" gorm:"ForeignKey:InvoiceID"`
 	BillingAddress  *BillingAddress `json:"billing_address" gorm:"ForeignKey:InvoiceID"`
+	SubscriptionID  *uint64         `json:"-" gorm:"sql:index;"`
 }
 
 // GetTitle ...
