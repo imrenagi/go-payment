@@ -13,6 +13,7 @@ import (
 	"github.com/imrenagi/go-payment/subscription"
 
 	goxendit "github.com/xendit/xendit-go"
+	xrecurring "github.com/xendit/xendit-go/recurringpayment"
 )
 
 type xenditSubscriptionController struct {
@@ -42,6 +43,39 @@ func (sc xenditSubscriptionController) Create(ctx context.Context, sub *subscrip
 		Status:                xendit.NewStatus(xres.Status),
 		LastCreatedInvoiceURL: xres.LastCreatedInvoiceURL,
 	}, nil
+}
+
+func (sc xenditSubscriptionController) Resume(ctx context.Context, sub *subscription.Subscription) error {
+	_, err := sc.XenditGateway.Recurring.ResumeWithContext(ctx, &xrecurring.ResumeParams{
+		ID: sub.GatewayRecurringID,
+	})
+	var xError *goxendit.Error
+	if ok := errors.As(err, &xError); ok && xError != nil {
+		return xError
+	}
+	return nil
+}
+
+func (sc xenditSubscriptionController) Stop(ctx context.Context, sub *subscription.Subscription) error {
+	_, err := sc.XenditGateway.Recurring.StopWithContext(ctx, &xrecurring.StopParams{
+		ID: sub.GatewayRecurringID,
+	})
+	var xError *goxendit.Error
+	if ok := errors.As(err, &xError); ok && xError != nil {
+		return xError
+	}
+	return nil
+}
+
+func (sc xenditSubscriptionController) Pause(ctx context.Context, sub *subscription.Subscription) error {
+	_, err := sc.XenditGateway.Recurring.PauseWithContext(ctx, &xrecurring.PauseParams{
+		ID: sub.GatewayRecurringID,
+	})
+	var xError *goxendit.Error
+	if ok := errors.As(err, &xError); ok && xError != nil {
+		return xError
+	}
+	return nil
 }
 
 func (sc xenditSubscriptionController) Gateway() payment.Gateway {

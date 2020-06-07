@@ -52,4 +52,7 @@ type xInvoice interface {
 
 type xRecurring interface {
 	CreateWithContext(ctx context.Context, data *recurring.CreateParams) (*xgo.RecurringPayment, *xendit.Error)
+	PauseWithContext(ctx context.Context, data *recurring.PauseParams) (*xgo.RecurringPayment, *xendit.Error)
+	ResumeWithContext(ctx context.Context, data *recurring.ResumeParams) (*xgo.RecurringPayment, *xendit.Error)
+	StopWithContext(ctx context.Context, data *recurring.StopParams) (*xgo.RecurringPayment, *xendit.Error)
 }

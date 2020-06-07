@@ -50,6 +50,7 @@ type FailInvoiceRequest struct {
 	Reason        string `json:"reason"`
 }
 
+// CreateSubscriptionRequest contains data for creating subscription
 type CreateSubscriptionRequest struct {
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
@@ -96,11 +97,12 @@ func (csr CreateSubscriptionRequest) ToSubscription() *subscription.Subscription
 	s.TotalReccurence = csr.TotalReccurence
 	s.CardToken = csr.CardToken
 	s.ChargeImmediately = csr.ChargeImmediately
-	s.Schedule = subscription.Schedule{
-		Interval:     csr.Schedule.Interval,
-		IntervalUnit: subscription.NewIntervalUnit(csr.Schedule.IntervalUnit),
-		StartAt:      csr.StartAt(),
-	}
+	schedule := subscription.NewSchedule(
+		csr.Schedule.Interval,
+		subscription.NewIntervalUnit(csr.Schedule.IntervalUnit),
+		csr.StartAt(),
+	)
+	s.Schedule = *schedule
 	return s
 }
 
@@ -116,9 +118,14 @@ func (csr CreateSubscriptionRequest) StartAt() *time.Time {
 
 // Interface payment management interface
 type Interface interface {
+	invoiceI
+	subscriptionI
+
 	// return the payment methods available in payment service
 	GetPaymentMethods(ctx context.Context, opts ...payment.Option) (*PaymentMethodList, error)
+}
 
+type invoiceI interface {
 	// return invoice given its invoice number
 	GetInvoice(ctx context.Context, number string) (*invoice.Invoice, error)
 
@@ -133,9 +140,20 @@ type Interface interface {
 
 	// FailInvoice make the invoice failed
 	FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*invoice.Invoice, error)
+}
 
+type subscriptionI interface {
 	// CreateSubscription creates new subscription
 	CreateSubscription(ctx context.Context, csr *CreateSubscriptionRequest) (*subscription.Subscription, error)
+
+	// PauseSubscription pause active subscription
+	PauseSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error)
+
+	// ResumeSubscription resume paused subscription
+	ResumeSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error)
+
+	// StopSubscription stop subscription
+	StopSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error)
 }
 
 // XenditProcessor callback handler for xendit

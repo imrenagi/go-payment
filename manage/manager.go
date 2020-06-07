@@ -261,6 +261,64 @@ func (m *Manager) CreateSubscription(ctx context.Context, csr *CreateSubscriptio
 	return s, nil
 }
 
+// PauseSubscription pause active subscription
+func (m *Manager) PauseSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error) {
+
+	sub, err := m.subscriptionRepository.FindByNumber(ctx, subsNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sub.Pause(ctx, m.subscriptionController(payment.GatewayXendit)); err != nil {
+		return nil, err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, sub); err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+
+}
+
+// ResumeSubscription resume paused subscription
+func (m *Manager) ResumeSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error) {
+
+	sub, err := m.subscriptionRepository.FindByNumber(ctx, subsNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sub.Resume(ctx, m.subscriptionController(payment.GatewayXendit)); err != nil {
+		return nil, err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, sub); err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+// StopSubscription stop subscription
+func (m *Manager) StopSubscription(ctx context.Context, subsNumber string) (*subscription.Subscription, error) {
+
+	sub, err := m.subscriptionRepository.FindByNumber(ctx, subsNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sub.Stop(ctx, m.subscriptionController(payment.GatewayXendit)); err != nil {
+		return nil, err
+	}
+
+	if err := m.subscriptionRepository.Save(ctx, sub); err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
 func (m Manager) subscriptionController(gateway payment.Gateway) subscription.Controller {
 	return &xenditSubscriptionController{
 		XenditGateway: m.xenditGateway,

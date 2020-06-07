@@ -227,7 +227,7 @@ func (m Manager) processXenditRecurringTransactionCallback(ctx context.Context, 
 		}
 	}
 
-	if err := subs.Record(inv); err != nil {
+	if err := subs.Save(inv); err != nil {
 		return err
 	}
 

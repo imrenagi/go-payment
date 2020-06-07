@@ -77,6 +77,12 @@ func (s *Subscription) Start(ctx context.Context, c creator) error {
 	s.Status = res.Status
 	s.LastCreatedInvoice = res.LastCreatedInvoiceURL
 
+	s.Schedule.PreviousExecutionAt = s.Schedule.StartAt
+	if s.TotalReccurence == 0 || s.TotalReccurence > 1 {
+		next := s.Schedule.NextSince(*s.Schedule.PreviousExecutionAt)
+		s.Schedule.NextExecutionAt = &next
+	}
+
 	return nil
 }
 
@@ -84,34 +90,79 @@ func (s Subscription) recurrenceProgress() int {
 	return len(s.Invoices)
 }
 
-func (s *Subscription) Stop() error {
+// Pause change the subscription status to paused and stop the schedule
+func (s *Subscription) Pause(ctx context.Context, p pauser) error {
+
+	if s.Status != StatusActive {
+		return fmt.Errorf("can't pause subscription if it is not in active state: %w", payment.ErrCantProceed)
+	}
+
+	if err := p.Pause(ctx, s); err != nil {
+		return err
+	}
+	s.Status = StatusPaused
 	return nil
 }
 
-func (s *Subscription) Pause() error {
+// Resume ...
+func (s *Subscription) Resume(ctx context.Context, r resumer) error {
+
+	if s.Status != StatusPaused {
+		return fmt.Errorf("can't resume subscription if it is not in paused state: %w", payment.ErrCantProceed)
+	}
+
+	if err := r.Resume(ctx, s); err != nil {
+		return err
+	}
+
+	s.Schedule.NextExecutionAt = s.Schedule.NextAfterPause()
+	s.Status = StatusActive
 	return nil
 }
 
-func (s *Subscription) Resume() error {
+// Stop should stop subscription
+func (s *Subscription) Stop(ctx context.Context, st stopper) error {
+
+	if s.Status == StatusStop {
+		return fmt.Errorf("subscriptions has been stopped: %w", payment.ErrCantProceed)
+	}
+
+	if err := st.Stop(ctx, s); err != nil {
+		return err
+	}
+
+	s.Schedule.NextExecutionAt = nil
+	s.Status = StatusStop
 	return nil
 }
 
-// Record ...
-func (s *Subscription) Record(inv *invoice.Invoice) error {
+// Save stores invoice created for subscription and renew subscription
+// schedule
+func (s *Subscription) Save(inv *invoice.Invoice) error {
 
-	if s.recurrenceProgress() >= s.TotalReccurence {
+	if s.TotalReccurence != 0 && s.recurrenceProgress() >= s.TotalReccurence {
 		return fmt.Errorf("should not accept more invoice since all invoices has been recorded %w", payment.ErrCantProceed)
 	}
 
 	inv.SubscriptionID = &s.ID
 	s.Invoices = append(s.Invoices, *inv)
-	s.Schedule.ScheduleNext()
+
+	if s.Schedule.NextExecutionAt != nil {
+		next := s.Schedule.NextSince(*s.Schedule.NextExecutionAt)
+		s.Schedule.PreviousExecutionAt = s.Schedule.NextExecutionAt
+		s.Schedule.NextExecutionAt = &next
+	}
 	return nil
 }
 
-// Charge should create new invoice belong to the subscription
-func (s *Subscription) Charge() (*invoice.Invoice, error) {
-	return nil, nil
+// NewSchedule create new payment schedule
+func NewSchedule(interval int, unit IntervalUnit, start *time.Time) *Schedule {
+	s := &Schedule{
+		Interval:     interval,
+		IntervalUnit: unit,
+		StartAt:      start,
+	}
+	return s
 }
 
 // Schedule tells when subscription starts and charges
@@ -125,16 +176,35 @@ type Schedule struct {
 	NextExecutionAt     *time.Time   `json:"next_execution_at"`
 }
 
-// ScheduleNext calculates the next time invoice should be generated
-// and update the previous execution time
-func (s *Schedule) ScheduleNext() {
-	var cur *time.Time
-	if s.PreviousExecutionAt == nil {
-		cur = s.StartAt
-	} else {
-		cur = s.NextExecutionAt
+// NextSince ...
+func (s *Schedule) NextSince(t time.Time) time.Time {
+	return t.Add(time.Duration(s.Interval) * s.IntervalUnit.Duration())
+}
+
+// NextAfterPause calculate when the next payment should be executed after it is paused
+func (s *Schedule) NextAfterPause() *time.Time {
+
+	// if this schedule is only one time, thus no next charge
+	if s.NextExecutionAt == nil {
+		return nil
 	}
-	next := cur.Add(time.Duration(s.Interval) * s.IntervalUnit.Duration())
-	s.NextExecutionAt = &next
-	s.PreviousExecutionAt = cur
+
+	now := time.Now()
+	if s.NextExecutionAt.After(now) {
+		return s.NextExecutionAt
+	}
+
+	if s.NextExecutionAt.Before(now) {
+		var next time.Time
+		prev := s.NextExecutionAt
+		for {
+			next = s.NextSince(*prev)
+			if next.After(now) {
+				break
+			}
+			prev = &next
+		}
+		return &next
+	}
+	return nil
 }

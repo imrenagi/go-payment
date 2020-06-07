@@ -1,7 +1,0 @@
-subscriptions:
-  - gateway: midtrans
-    in_use: false
-    send_email: true
-  - gateway: xendit
-    in_use: true
-    send_email: true

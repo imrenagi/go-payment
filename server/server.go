@@ -110,6 +110,48 @@ func (s Server) CreateSubscriptionHandler() http.HandlerFunc {
 	}
 }
 
+// PauseSubscriptionHandler returns handler for pausing subscription
+func (s Server) PauseSubscriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		subscriptionNumber := vars["subscription_number"]
+		subs, err := s.Manager.PauseSubscription(r.Context(), subscriptionNumber)
+		if err != nil {
+			WriteFailResponseFromError(w, err)
+			return
+		}
+		WriteSuccessResponse(w, http.StatusOK, subs, nil)
+	}
+}
+
+// StopSubscriptionHandler returns stop subscription handler
+func (s Server) StopSubscriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		subscriptionNumber := vars["subscription_number"]
+		subs, err := s.Manager.StopSubscription(r.Context(), subscriptionNumber)
+		if err != nil {
+			WriteFailResponseFromError(w, err)
+			return
+		}
+		WriteSuccessResponse(w, http.StatusOK, subs, nil)
+	}
+}
+
+// ResumeSubscriptionHandler returns resume susbcription handler
+func (s Server) ResumeSubscriptionHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		subscriptionNumber := vars["subscription_number"]
+		subs, err := s.Manager.ResumeSubscription(r.Context(), subscriptionNumber)
+		if err != nil {
+			WriteFailResponseFromError(w, err)
+			return
+		}
+		WriteSuccessResponse(w, http.StatusOK, subs, nil)
+	}
+}
+
 // MidtransTransactionCallbackHandler handles incoming notification about payment status from midtrans.
 func (s *Server) MidtransTransactionCallbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
