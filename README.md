@@ -35,15 +35,6 @@ Payment module used as proxy for multiple payment gateways. Currently it only su
   - [Mandatory Environment Variables](#mandatory-environment-variables)
 - [Example Code](#example-code)
 - [API Usage](#api-usage)
-  - [POSTMAN JSON](#postman-json)
-  - [List of payment methods](#list-of-payment-methods)
-    - [Request](#request)
-    - [Response](#response)
-  - [Generating New Invoice](#generating-new-invoice)
-    - [Request](#request-1)
-    - [Response](#response-1)
-    - [For Midtrans Payment Channel](#for-midtrans-payment-channel)
-    - [For Xendit Payment Channel](#for-xendit-payment-channel)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -55,13 +46,14 @@ Payment module used as proxy for multiple payment gateways. Currently it only su
 
 In general, this payment proxy can support payment through this following channels:
 
+- Recurring payment with Credit Card, OVO, Bank Transfer
 - Credit card payment with/without installment
 - Ewallet (GoPay, OVO, Dana, LinkAja)
 - Retail Outlet (Alfamart, Alfamidi, Dan+Dan)
 - Cardless Credit (Akulaku)
-- Bank Transfer via Virtual Account (BCA, BNI, Mandiri, Permata, Other Bank). BRI channel is coming.
+- Bank Transfer via Virtual Account (BCA, BNI, BRI, Mandiri, Permata, Other Bank).
 
-> :heavy_exclamation_mark: Support for recurring payment will be added soon!
+> :heavy_exclamation_mark: Recurring payment is only supported via XenditInvoice.
 
 ## Why you should use this payment proxy?
 
@@ -98,7 +90,7 @@ This tables shows which payment channels that has been implemented by this proxy
 | Other VA                        | :white_check_mark:                  | :x:                      |
 | BRI VA                          | :x:                                 | :white_check_mark:       |
 | Alfamart, Alfamidi, Dan+Dan     | :white_check_mark:                  | :white_check_mark:       |
-| QRIS                            | :white_check_mark: via Gopay Option | :x:                      |
+| QRIS                            | :white_check_mark:                  | n/a                      |
 | Gopay                           | :white_check_mark:                  | :x:                      |
 | OVO                             | :x:                                 | :white_check_mark:       |
 | DANA                            | :x:                                 | :white_check_mark:       |
@@ -303,195 +295,11 @@ export FAILED_REDIRECT_PATH="/donate/error"
 
 ## Example Code
 
-To start using this module, you can try the example [server.go](/example/server/server.go)
-
-```go
-package main
-
-import (
-  "net/http"
-
-  "github.com/gorilla/mux"
-  "github.com/imrenagi/go-payment/datastore/inmemory"
-  dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
-  "github.com/imrenagi/go-payment/gateway/midtrans"
-  "github.com/imrenagi/go-payment/invoice"
-  "github.com/imrenagi/go-payment/manage"
-  "github.com/imrenagi/go-payment/server"
-  "github.com/imrenagi/go-payment/util/db/mysql"
-  "github.com/imrenagi/go-payment/util/localconfig"
-  "github.com/rs/cors"
-  "github.com/rs/zerolog/log"
-)
-
-func main() {
-
-  secret, err := localconfig.LoadSecret("example/server/secret.yaml")
-  if err != nil {
-    panic(err)
-  }
-
-  db := mysql.NewGorm(secret.DB)
-  db.AutoMigrate(
-    &midtrans.TransactionStatus{},
-    &invoice.Invoice{},
-    &invoice.Payment{},
-    &invoice.CreditCardDetail{},
-    &invoice.LineItem{},
-    &invoice.BillingAddress{},
-  )
-
-  m := manage.NewManager(secret.Payment)
-  m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
-  m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
-  m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yml"))
-
-  srv := srv{
-    Router:     mux.NewRouter(),
-    paymentSrv: server.NewServer(m),
-  }
-  srv.routes()
-
-  if err := http.ListenAndServe(":8080", srv.GetHandler()); err != nil {
-    log.Fatal().Msgf("Server can't run. Got: `%v`", err)
-  }
-
-}
-```
-
-To run the application, simply use:
-
-```console
-$ go run example/server/server.go
-```
-
-> :heavy_exclamation_mark: If you want to accept payment callback from the payment gateway on your local computer for development purpose, consider to use [ngrok.io](https://ngrok.io) to expose your localhost to the internet and update the callback base URL in payment gateway dashboard and `SERVER_BASE_URL` accordingly.
+You can find the sample code in [here](/example/server)
 
 ## API Usage
 
-Your client webservice can interact to at least 2 endpoints:
-
-- GET all payment methods available
-- POST generating new invoice
-
-### POSTMAN JSON
-
-You can download this POSTMAN json file to see how to use the api. [POSTMAN COLLECTION](/example/server/go-payment.postman_collection.json)
-
-### List of payment methods
-
-#### Request
-
-If you want to get the estimated admin/installment fee for each payment methods, provice this GET request with optional `price` and `currency` query. Otherwise, it returns nil `admin_fee` and `installment_fee`
-
-```http
-GET /payment/methods?price=1000&currency=IDR
-```
-
-#### Response
-
-```json
-{
-  "card_payment": {
-    "payment_type": "credit_card",
-    "installments": [
-      {
-        "display_name": "",
-        "type": "offline",
-        "bank": "bca",
-        "terms": [
-          {
-            "term": 0,
-            "admin_fee": {
-              "value": 2029,
-              "curency": "IDR"
-            }
-          }
-        ]
-      }
-    ]
-  },
-  // ... redacted ...
-  "ewallets": [
-    {
-      "payment_type": "gopay",
-      "display_name": "Gopay",
-      "admin_fee": {
-        "value": 0,
-        "curency": "IDR"
-      }
-    }
-  ]
-}
-```
-
-### Generating New Invoice
-
-Use this endpoint to create a payment request to chosen payment channels and gateway.
-
-#### Request
-
-```http
-POST /payment/invoices
-```
-
-```json
-{
-  "payment": {
-    "payment_type": "ovo"
-  },
-  "customer": {
-    "name": "John",
-    "email": "foo@example.com",
-    "phone_number": "089922222222"
-  },
-  "items": [{
-    "name": "Support Podcast",
-    "category": "PODCAST",
-    "merchant": "imrenagi.com",
-    "description": "donasi podcast imre nagi",
-    "qty": 1,
-    "price": 80001,
-    "currency": "IDR"
-  }]
-}
-```
-
-> To create invoice with `credit_card` payment with/without installment, please take a look [POSTMAN COLLECTION](/example/server/go-payment.postman_collection.json)
-
-#### Response
-
-When you call endpoint above, server returns all invoice data. But, to proceed to the payment page you need to pay attention to `payment` object.
-
-```json
-{
-  "payment": {
-    "id": 48,
-    "created_at": "2020-05-25T23:31:44.99873+07:00",
-    "updated_at": "2020-05-25T23:31:44.99873+07:00",
-    "deleted_at": null,
-    "gateway": "xendit",
-    "payment_type": "ovo",
-    "token": "",
-    "redirect_url": "https://invoice.xendit.co/web/invoices5ecbf2f0689543409347ec15",
-    "transaction_id": "5ecbf2f0689543409347ec15"
-  }
-}
-```
-
-:heavy_exclamation_mark::heavy_exclamation_mark::heavy_exclamation_mark: Please note:
-
-#### For Midtrans Payment Channel
-
-- Value of `payment.gateway` will is always `midtrans`
-- You can use `payment.token` to open snap window by using midtrans [snap.js](https://snap-docs.midtrans.com/#snap-js)
-- If you want to use [Window Redirection](https://snap-docs.midtrans.com/#window-redirection), you can open a new browser tab by using url in `payment.redirect_url`
-
-#### For Xendit Payment Channel
-
-- Value of `payment.gateway` will is always `xendit`
-- `payment.token` is always empty for all xendit provided payment channels
-- You will always open `payment.redirect_url` in new browser tap for all payment methods provided by xendit. Including DANA, LinkAja, Kredivo, even Xendit Invoice.
+You can find the details of API usage in [here](/docs)
 
 ## Contributing
 

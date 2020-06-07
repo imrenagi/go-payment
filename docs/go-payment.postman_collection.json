@@ -1,0 +1,275 @@
+{
+	"info": {
+		"_postman_id": "8193a2d1-3a85-404d-a789-6e672e80d716",
+		"name": "go-payment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Payment",
+			"item": [
+				{
+					"name": "Non Credit Card Payment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"alfamart\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payment/invoices",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"invoices"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				},
+				{
+					"name": "Credit Card without installment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\"\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/payment/invoices",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payment",
+								"invoices"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Credit Card with Installment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"payment\": {\n\t\t\"payment_type\": \"credit_card\",\n\t\t\"credit_card\": {\n\t\t\t\"bank\": \"bca\",\n\t\t\t\"installment\": {\n\t\t\t\t\"type\": \"offline\",\n\t\t\t\t\"term\": 3\n\t\t\t}\n\t\t}\n\t},\n\t\"customer\": {\n\t\t\"name\": \"John\",\n\t\t\"email\": \"foo@bar.com\",\n\t\t\"phone_number\": \"089922222222\"\n\t},\n\t\"items\": [{\n\t\t\"name\": \"Support Podcast\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 10000,\n\t\t\"currency\": \"IDR\"\n\t},{\n\t\t\"name\": \"Support Podcast 2\",\n\t\t\"category\": \"PODCAST\",\n\t\t\"merchant\": \"imrenagi.comx\",\n\t\t\"description\": \"donasi podcast imre nagi\",\n\t\t\"qty\": 1,\n\t\t\"price\": 20000,\n\t\t\"currency\": \"IDR\"\n\t}]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/payment/invoices",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payment",
+								"invoices"
+							]
+						},
+						"description": "If you want to use installment, please provide `payment.credit_card` object.\n\n`bank` : bank providing the installment\n\n`installment.type` : either `offline` or `online`. \n\n    * `offline` means cardholder bank might not be the same as the `bank`\n    \n    * `online` means cardholder bank should be the same as the `bank`. This useful when a particular bank is running a special promo for their cardholder.\n\n`installment.term` : the tenure for the installment"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment Methods",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/payment/methods?price=1000&currency=IDR",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"payment",
+								"methods"
+							],
+							"query": [
+								{
+									"key": "price",
+									"value": "1000"
+								},
+								{
+									"key": "currency",
+									"value": "IDR"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Subscription",
+			"item": [
+				{
+					"name": "Create Subscriptions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Imre Subscription\",\n\t\"description\": \"Mantul\",\n\t\"amount\": 10000,\n\t\"user_id\": \"imre@gmail.com\",\n\t\"currency\": \"IDR\",\n\t\"total_recurrence\": 2,\n\t\"card_token\": \"\",\n\t\"charge_immediately\": true,\n\t\"schedule\": {\n\t\t\"interval\": 1,\n\t\t\"interval_unit\": \"day\",\n\t\t\"start_at\": \"2020-06-10T00:00:00.000Z\"\n\t} \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payment/subscriptions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"subscriptions"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				},
+				{
+					"name": "Pause Subscription",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payment/subscriptions/{{subscription_number}}/pause",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"subscriptions",
+								"{{subscription_number}}",
+								"pause"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				},
+				{
+					"name": "Resume Subscription",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payment/subscriptions/{{subscription_number}}/resume",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"subscriptions",
+								"{{subscription_number}}",
+								"resume"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				},
+				{
+					"name": "Stop Subscription",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/payment/subscriptions/{{subscription_number}}/stop",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"subscriptions",
+								"{{subscription_number}}",
+								"stop"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Callback",
+			"item": [
+				{
+					"name": "Xendit Invoice Callback",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/payment/xendit/invoice/callback",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"payment",
+								"xendit",
+								"invoice",
+								"callback"
+							]
+						},
+						"description": "supported values for `payment.payment_type`:\n* ovo, \n* dana\n* linkaja\n* bca_va\n* bni_va\n* permata_va\n* other_va\n* alfamart\n* akulaku"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
