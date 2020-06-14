@@ -41,7 +41,7 @@ func (r *InvoiceRepository) FindByNumber(ctx context.Context, number string) (*i
 	req := r.DB.
 		Preload("Payment").
 		Preload("Payment.CreditCardDetail").
-		Preload("LineItem").
+		Preload("LineItems").
 		Preload("BillingAddress").
 		Where("number = ?", number).Find(&invoice)
 
