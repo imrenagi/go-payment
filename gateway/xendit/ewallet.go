@@ -14,7 +14,8 @@ func NewEWalletRequest(inv *invoice.Invoice) *EWalletRequestBuilder {
 
 	b := &EWalletRequestBuilder{
 		request: &ewallet.CreatePaymentParams{
-			ExternalID: inv.Number,
+			XApiVersion: "2020-02-01",
+			ExternalID:  inv.Number,
 		},
 	}
 
