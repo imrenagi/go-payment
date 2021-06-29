@@ -11,7 +11,7 @@ import (
 	"github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
 	"github.com/imrenagi/go-payment/manage"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	mgo "github.com/veritrans/go-midtrans"
 )
 

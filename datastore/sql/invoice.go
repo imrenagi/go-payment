@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/invoice"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/rs/zerolog"
 )
 
@@ -45,13 +45,12 @@ func (r *InvoiceRepository) FindByNumber(ctx context.Context, number string) (*i
 		Preload("BillingAddress").
 		Where("number = ?", number).Find(&invoice)
 
-	if req.RecordNotFound() {
+	if req.Error == gorm.ErrRecordNotFound {
 		return nil, fmt.Errorf("invoice %s %w", number, payment.ErrNotFound)
 	}
 
-	errs := req.GetErrors()
-	if len(errs) > 0 {
-		log.Error().Err(errs[0]).Msg("can't find invoice")
+	if req.Error != nil {
+		log.Error().Err(req.Error).Msg("can't find invoice")
 		return nil, payment.ErrDatabase
 	}
 	return &invoice, nil

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/config"
 
@@ -121,7 +123,7 @@ func (i *Invoice) Clear() {
 
 // AfterFind assign a state controller after the entity is fetched from
 // database
-func (i *Invoice) AfterFind() error {
+func (i *Invoice) AfterFind(tx *gorm.DB)  error {
 	i.StateController = NewState(i.State.String())
 	return nil
 }

@@ -43,3 +43,5 @@ Thumbs.db
 _output/
 bin/
 vendor/
+
+example/server/gorm.db

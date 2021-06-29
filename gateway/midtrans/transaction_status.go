@@ -12,8 +12,8 @@ import (
 // TransactionStatus is object used to store notification from midtrans
 type TransactionStatus struct {
 	ID                     uint64    `json:"id" gorm:"primary_key"`
-	CreatedAt              time.Time `json:"created_at" gorm:"not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt              time.Time `json:"updated_at" gorm:"not null;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"`
+	CreatedAt              time.Time `json:"created_at" gorm:"not null;"`
+	UpdatedAt              time.Time `json:"updated_at" gorm:"not null;"`
 	StatusCode             string    `json:"status_code" gorm:"not null"`
 	StatusMessage          string    `json:"status_message" gorm:"type:text;not null"`
 	SignKey                string    `json:"signature_key" gorm:"type:text;column:signature_key;not null"`
