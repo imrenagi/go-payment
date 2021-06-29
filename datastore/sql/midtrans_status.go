@@ -1,4 +1,4 @@
-package mysql
+package sql
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/rs/zerolog"
 )
 
@@ -20,7 +20,7 @@ type MidtransTransactionRepository struct {
 	DB *gorm.DB
 }
 
-// Save will update the notification stored in mysql database
+// Save will update the notification stored in sql database
 func (m *MidtransTransactionRepository) Save(ctx context.Context, status *midtrans.TransactionStatus) error {
 	log := zerolog.Ctx(ctx).With().Str("function", "MidtransTransactionRepository.Save").Logger()
 
@@ -40,14 +40,14 @@ func (m *MidtransTransactionRepository) FindByOrderID(ctx context.Context, order
 		Where("order_id = ?", orderID).
 		First(&status)
 
-	if req.RecordNotFound() {
+	if req.Error == gorm.ErrRecordNotFound {
 		return nil, fmt.Errorf("payment status for order %s %w", orderID, payment.ErrNotFound)
 	}
-	errs := req.GetErrors()
-	if len(errs) > 0 {
-		log.Error().Err(errs[0]).Msg("cant find midtrans transaction status")
+	if req.Error != nil {
+		log.Error().Err(req.Error).Msg("cant find midtrans transaction status")
 		return nil, payment.ErrDatabase
 	}
+
 	return &status, nil
 
 }

@@ -3,19 +3,21 @@ package main
 import (
 	"net/http"
 
-	"github.com/imrenagi/go-payment/subscription"
-
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+
+	"github.com/rs/zerolog/log"
+
 	"github.com/imrenagi/go-payment/datastore/inmemory"
-	dsmysql "github.com/imrenagi/go-payment/datastore/mysql"
+	dssql "github.com/imrenagi/go-payment/datastore/sql"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/invoice"
 	"github.com/imrenagi/go-payment/manage"
 	"github.com/imrenagi/go-payment/server"
-	"github.com/imrenagi/go-payment/util/db/mysql"
+	"github.com/imrenagi/go-payment/subscription"
 	"github.com/imrenagi/go-payment/util/localconfig"
-	"github.com/rs/cors"
-	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -25,7 +27,10 @@ func main() {
 		panic(err)
 	}
 
-	db := mysql.NewGorm(secret.DB)
+	db, err := gorm.Open(sqlite.Open("example/server/gorm.db"), &gorm.Config{})
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
 	db.AutoMigrate(
 		&midtrans.TransactionStatus{},
 		&invoice.Invoice{},
@@ -38,9 +43,9 @@ func main() {
 	)
 
 	m := manage.NewManager(secret.Payment)
-	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
-	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
-	m.MustSubscriptionRepository(dsmysql.NewSubscriptionRepository(db))
+	m.MustMidtransTransactionStatusRepository(dssql.NewMidtransTransactionRepository(db))
+	m.MustInvoiceRepository(dssql.NewInvoiceRepository(db))
+	m.MustSubscriptionRepository(dssql.NewSubscriptionRepository(db))
 	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yaml"))
 
 	srv := srv{
@@ -66,7 +71,7 @@ func (s *srv) GetHandler() http.Handler {
 		AllowedOrigins:     []string{"http://localhost:3000", "https://localhost:3000"},
 		AllowedMethods:     []string{"POST", "GET", "PUT", "DELETE", "HEAD", "OPTIONS"},
 		AllowedHeaders:     []string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Mode"},
-		MaxAge:             60, //1 minutes
+		MaxAge:             60, // 1 minutes
 		AllowCredentials:   true,
 		OptionsPassthrough: false,
 		Debug:              false,
