@@ -13,12 +13,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/imrenagi/go-payment/datastore/inmemory"
-	dsmysql "github.com/imrenagi/go-payment/datastore/sql"
+	dssql "github.com/imrenagi/go-payment/datastore/sql"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/invoice"
 	"github.com/imrenagi/go-payment/manage"
 	"github.com/imrenagi/go-payment/server"
-	"github.com/imrenagi/go-payment/util/db/mysql"
 	"github.com/imrenagi/go-payment/util/localconfig"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
@@ -45,8 +44,8 @@ func main() {
 	)
 
 	m := manage.NewManager(secret.Payment)
-	m.MustMidtransTransactionStatusRepository(dsmysql.NewMidtransTransactionRepository(db))
-	m.MustInvoiceRepository(dsmysql.NewInvoiceRepository(db))
+	m.MustMidtransTransactionStatusRepository(dssql.NewMidtransTransactionRepository(db))
+	m.MustInvoiceRepository(dssql.NewInvoiceRepository(db))
 	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yml"))
 
 	srv := srv{
