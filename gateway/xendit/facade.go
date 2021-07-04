@@ -3,6 +3,9 @@ package xendit
 import (
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/invoice"
+
+	"fmt"
+
 	"github.com/xendit/xendit-go/ewallet"
 	xinvoice "github.com/xendit/xendit-go/invoice"
 )
@@ -21,6 +24,8 @@ func NewEwalletRequestFromInvoice(inv *invoice.Invoice) (*ewallet.CreatePaymentP
 		reqBuilder, err = NewDana(req)
 	case payment.SourceLinkAja:
 		reqBuilder, err = NewLinkAja(req)
+	default:
+		return nil, fmt.Errorf("payment type is not known")
 	}
 	if err != nil {
 		return nil, err
@@ -39,6 +44,10 @@ func NewInvoiceRequestFromInvoice(inv *invoice.Invoice) (*xinvoice.CreateParams,
 	switch inv.Payment.PaymentType {
 	case payment.SourceOvo:
 		reqBuilder, err = NewOVOInvoice(req)
+	case payment.SourceDana:
+		reqBuilder, err = NewDanaInvoice(req)
+	case payment.SourceLinkAja:
+		reqBuilder, err = NewLinkAjaInvoice(req)
 	case payment.SourceAlfamart:
 		reqBuilder, err = NewAlfamartInvoice(req)
 	case payment.SourceBCAVA:
@@ -53,6 +62,8 @@ func NewInvoiceRequestFromInvoice(inv *invoice.Invoice) (*xinvoice.CreateParams,
 		reqBuilder, err = NewMandiriVAInvoice(req)
 	case payment.SourceCreditCard:
 		reqBuilder, err = NewCreditCardInvoice(req)
+	default:
+		return nil, fmt.Errorf("payment type is not known")
 	}
 	if err != nil {
 		return nil, err

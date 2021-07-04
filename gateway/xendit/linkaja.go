@@ -6,6 +6,7 @@ import (
 
 	goxendit "github.com/xendit/xendit-go"
 	"github.com/xendit/xendit-go/ewallet"
+	xinvoice "github.com/xendit/xendit-go/invoice"
 )
 
 // NewLinkAja create xendit payment request for LinkAja
@@ -32,5 +33,25 @@ func (o *LinkAja) Build() (*ewallet.CreatePaymentParams, error) {
 		return nil, err
 	}
 
+	return req, nil
+}
+
+func NewLinkAjaInvoice(rb *InvoiceRequestBuilder) (*LinkAjaInvoice, error) {
+	return &LinkAjaInvoice{
+		rb: rb,
+	}, nil
+}
+
+type LinkAjaInvoice struct {
+	rb *InvoiceRequestBuilder
+}
+
+func (o *LinkAjaInvoice) Build() (*xinvoice.CreateParams, error) {
+
+	o.rb.AddPaymentMethod("LINKAJA")
+	req, err := o.rb.Build()
+	if err != nil {
+		return nil, err
+	}
 	return req, nil
 }

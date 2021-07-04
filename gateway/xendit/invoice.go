@@ -79,6 +79,8 @@ func (b *InvoiceRequestBuilder) AddPaymentMethod(m string) *InvoiceRequestBuilde
 		"PERMATA",
 		"ALFAMART",
 		"CREDIT_CARD",
+		"DANA",
+		"LINKAJA",
 		"OVO":
 		b.request.PaymentMethods = append(b.request.PaymentMethods, m)
 	}

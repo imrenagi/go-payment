@@ -123,9 +123,16 @@ func (i *Invoice) Clear() {
 
 // AfterFind assign a state controller after the entity is fetched from
 // database
-func (i *Invoice) AfterFind(tx *gorm.DB)  error {
+func (i *Invoice) AfterFind(tx *gorm.DB) error {
 	i.StateController = NewState(i.State.String())
 	return nil
+}
+
+func (i *Invoice) GetStateController() StateController {
+	if i.StateController == nil {
+		i.StateController = NewState(i.State.String())
+	}
+	return i.StateController
 }
 
 // UpsertBillingAddress create new billing address or update the existing one if it exist
@@ -254,24 +261,24 @@ func (i *Invoice) Publish(ctx context.Context) error {
 	i.InvoiceDate = now
 	i.DueDate = due
 
-	return i.StateController.Publish(i)
+	return i.GetStateController().Publish(i)
 }
 
 // Pay set the PaidAt time. It later delegate the action to its state controller.
 func (i *Invoice) Pay(ctx context.Context, transactionID string) error {
 	now := time.Now()
 	i.PaidAt = &now
-	return i.StateController.Pay(i, transactionID)
+	return i.GetStateController().Pay(i, transactionID)
 }
 
 // Process delegates the action to its state controller
 func (i *Invoice) Process(ctx context.Context) error {
-	return i.StateController.Process(i)
+	return i.GetStateController().Process(i)
 }
 
 // Fail delegates the action to its state controller
 func (i *Invoice) Fail(ctx context.Context) error {
-	return i.StateController.Fail(i)
+	return i.GetStateController().Fail(i)
 }
 
 // Reset changes the invoice invoice so that it can be used again
@@ -290,10 +297,10 @@ func (i *Invoice) Reset(ctx context.Context) error {
 	i.InvoiceDate = now
 	i.DueDate = due
 
-	return i.StateController.Reset(i)
+	return i.GetStateController().Reset(i)
 }
 
 // GetState returns the current state of invoice
 func (i *Invoice) GetState() State {
-	return i.StateController.State(i)
+	return i.GetStateController().State(i)
 }

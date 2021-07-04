@@ -56,35 +56,35 @@ type xenditCharger struct {
 func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
 	switch inv.Payment.PaymentType {
-	case payment.SourceLinkAja,
-		payment.SourceDana:
-		ewalletRequest, err := factory.NewEwalletRequestFromInvoice(inv)
-		if err != nil {
-			return nil, err
-		}
+	// case payment.SourceLinkAja,
+	// 	payment.SourceDana:
+	// 	ewalletRequest, err := factory.NewEwalletRequestFromInvoice(inv)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
 
-		bytes, err := json.MarshalIndent(ewalletRequest, "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println(string(bytes))
+	// 	bytes, err := json.MarshalIndent(ewalletRequest, "", "\t")
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	fmt.Println(string(bytes))
 
-		xres, err := c.XenditGateway.Ewallet.CreatePayment(ewalletRequest)
-		var xError *goxendit.Error
-		if ok := errors.As(err, &xError); ok && xError != nil {
-			return nil, xError
-		}
+	// 	xres, err := c.XenditGateway.Ewallet.CreatePayment(ewalletRequest)
+	// 	var xError *goxendit.Error
+	// 	if ok := errors.As(err, &xError); ok && xError != nil {
+	// 		return nil, xError
+	// 	}
 
-		if xres.Status == "PENDING" {
-			if err := inv.Process(ctx); err != nil {
-				return nil, err
-			}
-		}
+	// 	if xres.Status == "PENDING" {
+	// 		if err := inv.Process(ctx); err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
 
-		return &invoice.ChargeResponse{
-			PaymentURL:    xres.CheckoutURL,
-			TransactionID: xres.EWalletTransactionID,
-		}, nil
+	// 	return &invoice.ChargeResponse{
+	// 		PaymentURL:    xres.CheckoutURL,
+	// 		TransactionID: xres.EWalletTransactionID,
+	// 	}, nil
 	default:
 		invoiceRequest, err := factory.NewInvoiceRequestFromInvoice(inv)
 		if err != nil {

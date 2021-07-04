@@ -6,8 +6,8 @@ import (
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/invoice"
-	"gorm.io/gorm"
 	"github.com/rs/zerolog"
+	"gorm.io/gorm"
 )
 
 func NewInvoiceRepository(db *gorm.DB) *InvoiceRepository {
@@ -43,7 +43,7 @@ func (r *InvoiceRepository) FindByNumber(ctx context.Context, number string) (*i
 		Preload("Payment.CreditCardDetail").
 		Preload("LineItems").
 		Preload("BillingAddress").
-		Where("number = ?", number).Find(&invoice)
+		Where("number = ?", number).First(&invoice)
 
 	if req.Error == gorm.ErrRecordNotFound {
 		return nil, fmt.Errorf("invoice %s %w", number, payment.ErrNotFound)

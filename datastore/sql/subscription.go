@@ -41,7 +41,7 @@ func (r *SubscriptionRepository) FindByNumber(ctx context.Context, number string
 	req := r.DB.
 		Preload("Schedule").
 		Preload("Invoices").
-		Where("number = ?", number).Find(&subs)
+		Where("number = ?", number).First(&subs)
 
 	if req.Error == gorm.ErrRecordNotFound{
 		return nil, fmt.Errorf("subscription %s %w", number, payment.ErrNotFound)
