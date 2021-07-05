@@ -56,6 +56,40 @@ type xenditCharger struct {
 func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
 	switch inv.Payment.PaymentType {
+	case payment.SourceOvo:
+		ewChargeParams, err := factory.NewEWalletChargeRequestFromInvoice(inv)
+		if err != nil {
+			return nil, err
+		}
+
+			bytes, err := json.MarshalIndent(ewChargeParams, "", "\t")
+			if err != nil {
+				return nil, err
+			}
+			fmt.Println(string(bytes))
+
+		chargeRes, err := c.XenditGateway.Ewallet.CreateEWalletChargeWithContext(ctx, ewChargeParams)
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			return nil, xError
+		}
+
+		if chargeRes.Status == "PENDING" {
+			if err := inv.Process(ctx); err != nil {
+				return nil, err
+			}
+		}
+
+		// Need to take care of other URLs later
+		var paymentURL string
+		if url, ok := chargeRes.Actions["desktop_web_checkout_url"]; ok {
+			paymentURL = url
+		}
+
+		return &invoice.ChargeResponse{
+			PaymentURL:    paymentURL, // TODO handle mobile url etc
+			TransactionID: chargeRes.ID,
+		}, nil
 	// case payment.SourceLinkAja,
 	// 	payment.SourceDana:
 	// 	ewalletRequest, err := factory.NewEwalletRequestFromInvoice(inv)

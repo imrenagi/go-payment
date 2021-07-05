@@ -44,6 +44,7 @@ func (g Gateway) NotificationValidationKey() string {
 
 type xEwallet interface {
 	CreatePayment(data *ewallet.CreatePaymentParams) (*xgo.EWallet, *xgo.Error)
+	CreateEWalletChargeWithContext(ctx context.Context, data *ewallet.CreateEWalletChargeParams) (*xgo.EWalletCharge, *xgo.Error)
 }
 
 type xInvoice interface {
