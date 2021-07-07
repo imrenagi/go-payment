@@ -56,17 +56,20 @@ type xenditCharger struct {
 func (c xenditCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
 	switch inv.Payment.PaymentType {
-	case payment.SourceOvo:
+	case payment.SourceOvo,
+		payment.SourceLinkAja,
+		payment.SourceDana:
+
 		ewChargeParams, err := factory.NewEWalletChargeRequestFromInvoice(inv)
 		if err != nil {
 			return nil, err
 		}
 
-			bytes, err := json.MarshalIndent(ewChargeParams, "", "\t")
-			if err != nil {
-				return nil, err
-			}
-			fmt.Println(string(bytes))
+		bytes, err := json.MarshalIndent(ewChargeParams, "", "\t")
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(string(bytes))
 
 		chargeRes, err := c.XenditGateway.Ewallet.CreateEWalletChargeWithContext(ctx, ewChargeParams)
 		var xError *goxendit.Error

@@ -20,8 +20,8 @@ func NewRecurringChargeRequestBuilder(s *subscription.Subscription) *RecurringCh
 			MissedPaymentAction: missedPaymentAction(s.MissedPaymentAction),
 			Recharge:            &s.Recharge,
 			ChargeImmediately:   &s.ChargeImmediately,
-			SuccessRedirectURL:  fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("SUCCESS_REDIRECT_PATH")),
-			FailureRedirectURL:  fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("FAILED_REDIRECT_PATH")),
+			SuccessRedirectURL:  os.Getenv("RECURRING_SUCCESS_REDIRECT_URL"),
+			FailureRedirectURL:  os.Getenv("RECURRING_FAILED_REDIRECT_URL"),
 		},
 	}
 

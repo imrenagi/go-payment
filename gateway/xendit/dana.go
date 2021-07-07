@@ -1,7 +1,6 @@
 package xendit
 
 import (
-	"fmt"
 	"os"
 
 	goxendit "github.com/xendit/xendit-go"
@@ -25,8 +24,8 @@ type Dana struct {
 func (o *Dana) Build() (*ewallet.CreatePaymentParams, error) {
 
 	o.rb.SetPaymentMethod(goxendit.EWalletTypeDANA).
-		SetCallback(fmt.Sprintf("%s/payment/xendit/dana/callback", os.Getenv("SERVER_BASE_URL"))).
-		SetRedirect(fmt.Sprintf("%s%s", os.Getenv("WEB_BASE_URL"), os.Getenv("SUCCESS_REDIRECT_PATH")))
+		SetCallback(os.Getenv("DANA_LEGACY_CALLBACK_URL")).
+		SetRedirect(os.Getenv("DANA_LEGACY_REDIRECT_URL"))
 
 	req, err := o.rb.Build()
 	if err != nil {
@@ -54,4 +53,27 @@ func (o *DanaInvoice) Build() (*xinvoice.CreateParams, error) {
 		return nil, err
 	}
 	return req, nil
+}
+
+// NewDanaCharge is factory for Dana payment with xendit latest charge API
+func NewDanaCharge(rb *EWalletChargeRequestBuilder) (*DanaCharge, error) {
+	return &DanaCharge{
+		rb:    rb,
+	}, nil
+}
+
+type DanaCharge struct {
+	phone string
+	rb    *EWalletChargeRequestBuilder
+}
+
+func (o *DanaCharge) Build() (*ewallet.CreateEWalletChargeParams, error) {
+
+	props := map[string]string{
+		"success_redirect_url": os.Getenv("DANA_SUCCESS_REDIRECT_URL"),
+	}
+
+	o.rb.SetPaymentMethod(EWalletIDDana).
+		SetChannelProperties(props)
+	return o.rb.Build()
 }

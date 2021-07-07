@@ -28,7 +28,7 @@ func NewEWalletChargeRequestBuilder(inv *invoice.Invoice) *EWalletChargeRequestB
   b := &EWalletChargeRequestBuilder{
     request: &ewallet.CreateEWalletChargeParams{
       ReferenceID: inv.Number,
-      CheckoutMethod: "ONE_TIME_PAYMENT", // TODO dont hardcode this
+      CheckoutMethod: "ONE_TIME_PAYMENT",
     },
   }
 
@@ -69,7 +69,7 @@ func (b *EWalletChargeRequestBuilder) setItems(inv *invoice.Invoice) *EWalletCha
       Currency:    item.Currency,
       Price:       item.UnitPrice,
       Quantity:    item.Qty,
-      Type:        "SERVICE", // TODO do not hardcode this
+      Type:        "PRODUCT", // TODO do not hardcode this
       Description: item.Description,
     })
   }

@@ -51,7 +51,7 @@ type FailInvoiceRequest struct {
 }
 
 // CreateSubscriptionRequest contains data for creating subscription
-type CreateSubscriptionRequest struct {
+type  CreateSubscriptionRequest struct {
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
 	Amount            float64 `json:"amount"`

@@ -22,6 +22,10 @@ func NewEWalletChargeRequestFromInvoice(inv *invoice.Invoice) (*ewallet.CreateEW
 	switch inv.Payment.PaymentType {
 	case payment.SourceOvo:
 		reqBuilder, err = NewOVOCharge(rb, inv.BillingAddress.PhoneNumber)
+	case payment.SourceDana:
+		reqBuilder, err = NewDanaCharge(rb)
+	case payment.SourceLinkAja:
+		reqBuilder, err = NewLinkAjaCharge(rb)
 	default:
 		return nil, fmt.Errorf("unsupported payment method")
 	}
