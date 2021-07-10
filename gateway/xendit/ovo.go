@@ -1,6 +1,8 @@
 package xendit
 
 import (
+  "fmt"
+
   goxendit "github.com/xendit/xendit-go"
   "github.com/xendit/xendit-go/ewallet"
   xinvoice "github.com/xendit/xendit-go/invoice"
@@ -25,6 +27,11 @@ func (o *OVO) Build() (*ewallet.CreatePaymentParams, error) {
   if err != nil {
     return nil, err
   }
+
+  if !OvoPhoneValidator.IsValid(req.Phone) {
+    return nil, fmt.Errorf("invalid phone number. must be in 08xxxx format")
+  }
+
   return req, nil
 }
 
@@ -62,6 +69,11 @@ type OVOCharge struct {
 }
 
 func (o *OVOCharge) Build() (*ewallet.CreateEWalletChargeParams, error) {
+
+  if !OvoChargePhoneValidator.IsValid(o.phone) {
+    return nil, fmt.Errorf("invalid phone format. must be in +628xxxxxx format")
+  }
+
   props := map[string]string{
     "mobile_number": o.phone,
   }

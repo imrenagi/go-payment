@@ -90,6 +90,7 @@ func (b *EWalletChargeRequestBuilder) SetChannelProperties(props map[string]stri
 
 func (b *EWalletChargeRequestBuilder) Build() (*ewallet.CreateEWalletChargeParams, error) {
   // TODO validate the request
+  // TODO phone number must be in +62xxxx format only for ovo
   return b.request, nil
 }
 
@@ -169,5 +170,6 @@ func (b *EWalletRequestBuilder) SetRedirect(url string) *EWalletRequestBuilder {
 
 func (b *EWalletRequestBuilder) Build() (*ewallet.CreatePaymentParams, error) {
   // TODO validate the request
+  // phone number for ovo must be 08xxxxx format only for ovo
   return b.request, nil
 }

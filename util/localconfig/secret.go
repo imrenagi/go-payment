@@ -55,6 +55,7 @@ func LoadSecretFromBytes(data []byte) (*Secret, error) {
 	fang.AutomaticEnv()
 	fang.SetEnvPrefix("GOPAYMENT")
 	fang.SetConfigType("yaml")
+	
 
 	if err := fang.ReadConfig(bytes.NewBuffer(data)); err != nil {
 		return nil, err

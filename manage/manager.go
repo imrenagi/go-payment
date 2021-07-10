@@ -18,9 +18,11 @@ import (
 
 // NewManager creates a new payment manager
 func NewManager(
+	config localconfig.Config,
 	secret localconfig.PaymentSecret,
 ) *Manager {
 	return &Manager{
+		config:          config,
 		xenditGateway:   xengateway.NewGateway(secret.Xendit),
 		midtransGateway: midgateway.NewGateway(secret.Midtrans),
 	}
@@ -28,6 +30,7 @@ func NewManager(
 
 // Manager handle business logic related to payment gateway
 type Manager struct {
+	config                   localconfig.Config
 	xenditGateway            *xengateway.Gateway
 	midtransGateway          *midgateway.Gateway
 	midTransactionRepository datastore.MidtransTransactionStatusRepository
@@ -78,7 +81,8 @@ func (m Manager) charger(inv *invoice.Invoice) invoice.PaymentCharger {
 	switch payment.NewGateway(inv.Payment.Gateway) {
 	case payment.GatewayXendit:
 		return &xenditCharger{
-			XenditGateway: m.xenditGateway,
+			config: m.config.Xendit,
+			XenditGateway:    m.xenditGateway,
 		}
 	case payment.GatewayMidtrans:
 		return &midtransCharger{

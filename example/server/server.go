@@ -22,6 +22,11 @@ import (
 
 func main() {
 
+	config, err := localconfig.LoadConfig("example/server/config.yaml")
+	if err != nil {
+		panic(err)
+	}
+
 	secret, err := localconfig.LoadSecret("example/server/secret.yaml")
 	if err != nil {
 		panic(err)
@@ -42,7 +47,7 @@ func main() {
 		&subscription.Schedule{},
 	)
 
-	m := manage.NewManager(secret.Payment)
+	m := manage.NewManager(*config, secret.Payment)
 	m.MustMidtransTransactionStatusRepository(dssql.NewMidtransTransactionRepository(db))
 	m.MustInvoiceRepository(dssql.NewInvoiceRepository(db))
 	m.MustSubscriptionRepository(dssql.NewSubscriptionRepository(db))

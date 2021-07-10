@@ -2,9 +2,46 @@ package xendit
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/imrenagi/go-payment"
 )
+
+// EWalletPaymentStatus stores callback information for xendit ewallet
+type EWalletPaymentStatus struct {
+	Event string `json:"event"`
+	BusinessID string `json:"business_id"`
+	CreatedAt time.Time `json:"created"`
+	Data EWalletPaymentStatusData `json:"data"`
+	CallbackAuthToken string  `json:"callback_authentication_token"`
+}
+
+func (s EWalletPaymentStatus) IsValid(authKey string) error {
+	return checkCallbackToken(authKey, s.CallbackAuthToken)
+}
+
+type EWalletPaymentStatusData struct {
+	ID string `json:"id"`
+	BusinessID string `json:"business_id"`
+	ReferenceID string `json:"reference_id"`
+	Status string `json:"status"`
+	Currency string `json:"currency"`
+	ChargeAmount float64 `json:"charge_amount"`
+	CaptureAmount *float64 `json:"capture_amount"`
+	ChannelCode string `json:"channel_code"`
+	CheckoutMethod string `json:"checkout_method"`
+	ChannelProperties map[string]string `json:"channel_properties,omitempty"`
+	Actions map[string]string `json:"actions,omitempty"`
+	IsRedirectRequired bool `json:"is_redirect_required"`
+	CallbackURL string `json:"callback_url"`
+	CreatedAt time.Time `json:"created"`
+	UpdatedAt time.Time `json:"updated"`
+	VoidedAt *time.Time `json:"voided_at"`
+	// CaptureNow *bool `json:"capture_now,omitempty"`
+	CustomerID *string `json:"customer_id"`
+	PaymentMethodID *string `json:"payment_method_id"`
+	Metadata map[string]interface{} `json:"metadata"`
+}
 
 // DANAPaymentStatus stores the data sent by xendit while triggering
 // any webhook for dana payment

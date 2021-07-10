@@ -130,6 +130,44 @@ func (m *Manager) ProcessXenditInvoicesCallback(ctx context.Context, ips *xendit
 	return m.processXenditNonRecurringTransactionCallback(ctx, ips)
 }
 
+func (m *Manager) ProcessXenditEWalletCallback(ctx context.Context, status *xendit.EWalletPaymentStatus) error {
+
+	if err := status.IsValid(m.xenditGateway.NotificationValidationKey()); err != nil {
+		return err
+	}
+
+	inv, err := m.GetInvoice(ctx, status.Data.ReferenceID)
+	if err != nil && !errors.Is(err, payment.ErrNotFound) {
+		return err
+	}
+
+	// Need to return no error if invoice is not found in this case
+	if errors.Is(err, payment.ErrNotFound) {
+		return nil
+	}
+
+	if status.Data.Status == "FAILED" || status.Data.Status == "VOIDED" {
+		if _, err := m.FailInvoice(ctx, &FailInvoiceRequest{
+			InvoiceNumber: inv.Number,
+			TransactionID: status.Data.ReferenceID,
+			Reason:        status.Data.Status,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if status.Data.Status == "SUCCEEDED" {
+		if _, err := m.PayInvoice(ctx, &PayInvoiceRequest{
+			InvoiceNumber: inv.Number,
+			TransactionID: status.Data.ReferenceID,
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (m Manager) processXenditNonRecurringTransactionCallback(ctx context.Context, ips *xendit.InvoicePaymentStatus) error {
 	inv, err := m.GetInvoice(ctx, ips.ExternalID)
 	if err != nil && !errors.Is(err, payment.ErrNotFound) {

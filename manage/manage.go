@@ -162,6 +162,7 @@ type XenditProcessor interface {
 	ProcessLinkAjaCallback(ctx context.Context, lps *xendit.LinkAjaPaymentStatus) error
 	ProcessOVOCallback(ctx context.Context, ops *xendit.OVOPaymentStatus) error
 	ProcessXenditInvoicesCallback(ctx context.Context, ips *xendit.InvoicePaymentStatus) error
+	ProcessXenditEWalletCallback(ctx context.Context, status *xendit.EWalletPaymentStatus) error
 }
 
 // MidtransProcessor callback handler for midtrans
