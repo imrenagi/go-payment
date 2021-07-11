@@ -14,9 +14,9 @@ type AlfamartInvoice struct {
 	rb *InvoiceRequestBuilder
 }
 
-func (o *AlfamartInvoice) Build() (*xinvoice.CreateParams, error) {
-	o.rb.AddPaymentMethod("ALFAMART")
-	req, err := o.rb.Build()
+func (ai *AlfamartInvoice) Build() (*xinvoice.CreateParams, error) {
+	ai.rb.AddPaymentMethod("ALFAMART")
+	req, err := ai.rb.Build()
 	if err != nil {
 		return nil, err
 	}

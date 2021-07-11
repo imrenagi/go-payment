@@ -1,11 +1,11 @@
-package xendit_test
+package ewallet_test
 
 import (
   "testing"
 
   "github.com/stretchr/testify/assert"
 
-  "github.com/imrenagi/go-payment/gateway/xendit"
+  "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v1"
 )
 
 func TestOvoLegacyPhoneValidator_IsValid(t *testing.T) {
@@ -34,7 +34,7 @@ func TestOvoLegacyPhoneValidator_IsValid(t *testing.T) {
 
   for _, tt := range tests {
     t.Run(tt.name, func(t *testing.T) {
-      o := xendit.OvoPhoneValidator
+      o := ewallet.OvoPhoneValidator
       assert.Equal(t, tt.isValid, o.IsValid(tt.phone))
     })
   }

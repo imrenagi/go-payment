@@ -1,4 +1,4 @@
-package xendit
+package ewallet
 
 import (
   "regexp"
