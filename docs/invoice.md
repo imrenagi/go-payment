@@ -37,7 +37,8 @@ POST /payment/invoices
 
 ### Response
 
-When you call endpoint above, server returns all invoice data. But, to proceed to the payment page you need to pay attention to `payment` object.
+When you call endpoint above, server returns all invoice data. But, to proceed to the payment page you need to pay
+attention to `payment` object.
 
 ```json
 {
@@ -61,10 +62,12 @@ When you call endpoint above, server returns all invoice data. But, to proceed t
 
 - Value of `payment.gateway` will is always `midtrans`
 - You can use `payment.token` to open snap window by using midtrans [snap.js](https://snap-docs.midtrans.com/#snap-js)
-- If you want to use [Window Redirection](https://snap-docs.midtrans.com/#window-redirection), you can open a new browser tab by using url in `payment.redirect_url`
+- If you want to use [Window Redirection](https://snap-docs.midtrans.com/#window-redirection), you can open a new
+  browser tab by using url in `payment.redirect_url`
 
 ### For Xendit Payment Channel
 
 - Value of `payment.gateway` will is always `xendit`
 - `payment.token` is always empty for all xendit provided payment channels
-- You will always open `payment.redirect_url` in new browser tap for all payment methods provided by xendit. Including DANA, LinkAja, Kredivo, even Xendit Invoice.
+- You will always open `payment.redirect_url` in new browser tap for all payment methods provided by xendit. Including
+  DANA, LinkAja, Kredivo, even Xendit Invoice.

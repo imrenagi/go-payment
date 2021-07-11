@@ -1,8 +1,10 @@
-package xendit
+package recurring
 
 import (
 	"fmt"
 	"os"
+
+	xgo "github.com/xendit/xendit-go"
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/subscription"
@@ -10,8 +12,13 @@ import (
 	xrp "github.com/xendit/xendit-go/recurringpayment"
 )
 
-// NewRecurringChargeRequestBuilder builder for building the recurring charge request
-func NewRecurringChargeRequestBuilder(s *subscription.Subscription) *RecurringChargeRequestBuilder {
+// New creates recurring charge params
+func New(s *subscription.Subscription) (*xrp.CreateParams, error) {
+	return newRecurringChargeRequestBuilder(s).Build()
+}
+
+// newRecurringChargeRequestBuilder builder for building the recurring charge request
+func newRecurringChargeRequestBuilder(s *subscription.Subscription) *RecurringChargeRequestBuilder {
 
 	b := &RecurringChargeRequestBuilder{
 		request: &xrp.CreateParams{
@@ -71,4 +78,29 @@ func (b *RecurringChargeRequestBuilder) Build() (*xrp.CreateParams, error) {
 	}
 
 	return b.request, nil
+}
+
+
+func missedPaymentAction(enum subscription.MissedPaymentAction) xgo.MissedPaymentActionEnum {
+	switch enum {
+	case subscription.MissedPaymentActionIgnore:
+		return xgo.MissedPaymentActionIgnore
+	case subscription.MissedPaymentActionStop:
+		return xgo.MissedPaymentActionStop
+	default:
+		return ""
+	}
+}
+
+func paymentIntervalUnit(enum subscription.IntervalUnit) xgo.RecurringPaymentIntervalEnum {
+	switch enum {
+	case subscription.IntervalUnitDay:
+		return xgo.RecurringPaymentIntervalDay
+	case subscription.IntervalUnitWeek:
+		return xgo.RecurringPaymentIntervalWeek
+	case subscription.IntervalUnitMonth:
+		return xgo.RecurringPaymentIntervalMonth
+	default:
+		return ""
+	}
 }

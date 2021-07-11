@@ -8,9 +8,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/gateway/xendit/recurring"
 
 	"github.com/imrenagi/go-payment/gateway/xendit"
-	factory "github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/subscription"
 
 	goxendit "github.com/xendit/xendit-go"
@@ -27,7 +27,7 @@ func (sc xenditSubscriptionController) Create(ctx context.Context, sub *subscrip
 		Str("function", "xenditSubscriptionController.Create").
 		Logger()
 
-	recurringRequest, err := factory.NewRecurringChargeRequestBuilder(sub).Build()
+	recurringRequest, err := recurring.New(sub)
 	if err != nil {
 		return nil, err
 	}
