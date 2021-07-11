@@ -1,91 +1,13 @@
 package xendit
 
 import (
-  "fmt"
-
-  "github.com/xendit/xendit-go"
   goxendit "github.com/xendit/xendit-go"
   "github.com/xendit/xendit-go/ewallet"
 
   "github.com/imrenagi/go-payment/invoice"
 )
 
-type EWalletTypeEnum string
 
-const (
-  EWalletIDOVO       EWalletTypeEnum = "ID_OVO"
-  EWalletIDDana      EWalletTypeEnum = "ID_DANA"
-  EWalletIDLinkAja   EWalletTypeEnum = "ID_LINKAJA"
-  EwalletIDShopeePay EWalletTypeEnum = "ID_SHOPEEPAY"
-)
-
-func newEWalletChargeRequestBuilder(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
-
-  b := &EWalletChargeRequestBuilder{
-    request: &ewallet.CreateEWalletChargeParams{
-      ReferenceID: inv.Number,
-      CheckoutMethod: "ONE_TIME_PAYMENT",
-    },
-  }
-
-  b.setCustomerData(inv).
-    setPrice(inv).
-    setItems(inv)
-
-  return b
-}
-
-type EWalletChargeRequestBuilder struct {
-  request *ewallet.CreateEWalletChargeParams
-}
-
-func (b *EWalletChargeRequestBuilder) setCustomerData(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
-  // b.request.CustomerID = inv.BillingAddress.Email
-  return b
-}
-
-func (b *EWalletChargeRequestBuilder) setPrice(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
-  b.request.Amount = inv.GetTotal()
-  b.request.Currency = inv.Currency
-  return b
-}
-
-func (b *EWalletChargeRequestBuilder) setItems(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
-  if inv.LineItems == nil {
-    return b
-  }
-
-  var items []xendit.EWalletBasketItem
-  for _, item := range inv.LineItems {
-    items = append(items, xendit.EWalletBasketItem{
-      ReferenceID: fmt.Sprintf("%d", item.ID),
-      Name:        item.Name,
-      Category:    item.Category,
-      Currency:    item.Currency,
-      Price:       item.UnitPrice,
-      Quantity:    item.Qty,
-      Type:        "PRODUCT", // TODO do not hardcode this
-      Description: item.Description,
-    })
-  }
-
-  b.request.Basket = items
-  return b
-}
-
-func (b *EWalletChargeRequestBuilder) SetPaymentMethod(m EWalletTypeEnum) *EWalletChargeRequestBuilder {
-  b.request.ChannelCode = string(m)
-  return b
-}
-
-func (b *EWalletChargeRequestBuilder) SetChannelProperties(props map[string]string) *EWalletChargeRequestBuilder {
-  b.request.ChannelProperties = props
-  return b
-}
-
-func (b *EWalletChargeRequestBuilder) Build() (*ewallet.CreateEWalletChargeParams, error) {
-  return b.request, nil
-}
 
 type ewalletRequestBuilder interface {
   Build() (*ewallet.CreatePaymentParams, error)

@@ -3,6 +3,7 @@ package xendit
 import (
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/invoice"
+	v2 "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v2"
 
 	"fmt"
 
@@ -15,11 +16,11 @@ import (
 func NewEWalletChargeRequestFromInvoice(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
 	switch inv.Payment.PaymentType {
 	case payment.SourceOvo:
-		return NewOVOCharge(inv)
+		return v2.NewOVO(inv)
 	case payment.SourceDana:
-		return NewDanaCharge(inv)
+		return v2.NewDana(inv)
 	case payment.SourceLinkAja:
-		return NewLinkAjaCharge(inv)
+		return v2.NewLinkAja(inv)
 	default:
 		return nil, fmt.Errorf("unsupported payment method")
 	}

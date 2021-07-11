@@ -1,4 +1,4 @@
-package xendit_test
+package ewallet_test
 
 import (
   "testing"
@@ -7,7 +7,7 @@ import (
   "github.com/xendit/xendit-go"
   "github.com/xendit/xendit-go/ewallet"
 
-  xendit2 "github.com/imrenagi/go-payment/gateway/xendit"
+  . "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v2"
   "github.com/imrenagi/go-payment/invoice"
 )
 
@@ -18,7 +18,7 @@ func TestOvoCharge(t *testing.T) {
     req *ewallet.CreateEWalletChargeParams
   } {
     {
-      name: "successfully build the ewallet charge request builder",
+      name:    "successfully build the ewallet charge request builder",
       invoice: dummyInv,
       req: &ewallet.CreateEWalletChargeParams{
         ReferenceID:       "a-random-invoice-number",
@@ -49,7 +49,7 @@ func TestOvoCharge(t *testing.T) {
 
   for _, tt := range tests {
     t.Run(tt.name, func(t *testing.T) {
-      req, err := xendit2.NewOVOCharge(tt.invoice)
+      req, err := NewOVO(tt.invoice)
       assert.NoError(t, err)
       assert.EqualValues(t, tt.req, req)
     })

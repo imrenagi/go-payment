@@ -1,14 +1,14 @@
-package xendit_test
+package ewallet_test
 
 import (
   "testing"
 
   "github.com/stretchr/testify/assert"
 
-  "github.com/imrenagi/go-payment/gateway/xendit"
+  . "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v2"
 )
 
-func TestOvoLegacyPhoneValidator_IsValid(t *testing.T) {
+func TestOvoChargePhoneValidator_IsValid(t *testing.T) {
 
   tests := []struct {
     name    string
@@ -16,25 +16,25 @@ func TestOvoLegacyPhoneValidator_IsValid(t *testing.T) {
     isValid bool
   }{
     {
-      name:    "valid phone number with 08xxx",
-      phone:   "08111231234",
+      name:    "valid phone number with +62",
+      phone:   "+628111231234",
       isValid: true,
     },
     {
-      name:    "invalid phone number even if it is using 08xxx",
-      phone:   "0-811-123-1234",
+      name:    "invalid phone number even if it is using +62",
+      phone:   "+62-811-123-1234",
       isValid: false,
     },
     {
       name:    "invalid phone number",
-      phone:   "+628111231234",
+      phone:   "08111231234",
       isValid: false,
     },
   }
 
   for _, tt := range tests {
     t.Run(tt.name, func(t *testing.T) {
-      o := xendit.OvoPhoneValidator
+      o := OvoChargePhoneValidator
       assert.Equal(t, tt.isValid, o.IsValid(tt.phone))
     })
   }

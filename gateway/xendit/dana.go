@@ -6,8 +6,6 @@ import (
 	goxendit "github.com/xendit/xendit-go"
 	"github.com/xendit/xendit-go/ewallet"
 	xinvoice "github.com/xendit/xendit-go/invoice"
-
-	"github.com/imrenagi/go-payment/invoice"
 )
 
 // NewDana create xendit payment request for Dana
@@ -55,17 +53,4 @@ func (o *DanaInvoice) Build() (*xinvoice.CreateParams, error) {
 		return nil, err
 	}
 	return req, nil
-}
-
-// NewDanaCharge is factory for Dana payment with xendit latest charge API
-func NewDanaCharge(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
-
-	props := map[string]string{
-		"success_redirect_url": os.Getenv("DANA_SUCCESS_REDIRECT_URL"),
-	}
-
-	return newEWalletChargeRequestBuilder(inv).
-		SetPaymentMethod(EWalletIDDana).
-		SetChannelProperties(props).
-		Build()
 }

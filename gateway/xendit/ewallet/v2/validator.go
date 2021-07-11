@@ -1,11 +1,11 @@
-package xendit
+package ewallet
 
 import (
   "regexp"
 )
 
 var (
-  ovoPhoneRegexp = regexp.MustCompile(`(?:08)\d{7,12}`)
+  ovoChargePhoneRegexp = regexp.MustCompile(`(?:\+62)\d{7,12}`)
 )
 
 type ovoPhoneValidator struct {
@@ -16,4 +16,4 @@ func (o ovoPhoneValidator) IsValid(s string) bool {
   return o.pattern.MatchString(s)
 }
 
-var OvoPhoneValidator = ovoPhoneValidator{pattern: ovoPhoneRegexp}
+var OvoChargePhoneValidator = ovoPhoneValidator{pattern: ovoChargePhoneRegexp}

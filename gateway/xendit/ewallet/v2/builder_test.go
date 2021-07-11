@@ -1,4 +1,4 @@
-package xendit_test
+package ewallet_test
 
 import (
   "time"
