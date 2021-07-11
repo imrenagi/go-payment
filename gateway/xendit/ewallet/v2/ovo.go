@@ -23,7 +23,7 @@ func NewOVO(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
     "mobile_number": inv.BillingAddress.PhoneNumber,
   }
 
-  return newEWalletChargeRequestBuilder(inv).
+  return newBuilder(inv).
     SetPaymentMethod(EWalletIDOVO).
     SetChannelProperties(props).
     Build()

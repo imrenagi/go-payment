@@ -11,7 +11,7 @@ import (
 
 // NewDana create xendit payment request for Dana
 func NewDana(inv *invoice.Invoice) (*ewallet.CreatePaymentParams, error) {
-	return mewEWalletRequest(inv).
+	return newBuilder(inv).
 		SetPaymentMethod(goxendit.EWalletTypeDANA).
 		SetCallback(os.Getenv("DANA_LEGACY_CALLBACK_URL")).
 		SetRedirect(os.Getenv("DANA_LEGACY_REDIRECT_URL")).

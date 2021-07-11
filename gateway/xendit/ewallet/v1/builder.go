@@ -7,11 +7,11 @@ import (
   "github.com/imrenagi/go-payment/invoice"
 )
 
-// Deprecated: mewEWalletRequest generate legacy ewallet body request for xendit. This API is
+// Deprecated: newBuilder generate legacy ewallet body request for xendit. This API is
 // deprecated. Consider to use the newEWalletChargeRequestBuilder
-func mewEWalletRequest(inv *invoice.Invoice) *eWalletRequestBuilder {
+func newBuilder(inv *invoice.Invoice) *builder {
 
-  b := &eWalletRequestBuilder{
+  b := &builder{
     request: &ewallet.CreatePaymentParams{
       XApiVersion: "2020-02-01",
       ExternalID:  inv.Number,
@@ -24,11 +24,11 @@ func mewEWalletRequest(inv *invoice.Invoice) *eWalletRequestBuilder {
     SetExpiration(inv)
 }
 
-type eWalletRequestBuilder struct {
+type builder struct {
   request *ewallet.CreatePaymentParams
 }
 
-func (b *eWalletRequestBuilder) SetItemDetails(inv *invoice.Invoice) *eWalletRequestBuilder {
+func (b *builder) SetItemDetails(inv *invoice.Invoice) *builder {
 
   if inv.LineItems == nil {
     return b
@@ -48,37 +48,37 @@ func (b *eWalletRequestBuilder) SetItemDetails(inv *invoice.Invoice) *eWalletReq
   return b
 }
 
-func (b *eWalletRequestBuilder) SetExpiration(inv *invoice.Invoice) *eWalletRequestBuilder {
+func (b *builder) SetExpiration(inv *invoice.Invoice) *builder {
   b.request.ExpirationDate = &inv.DueDate
   return b
 }
 
-func (b *eWalletRequestBuilder) SetCustomerData(inv *invoice.Invoice) *eWalletRequestBuilder {
+func (b *builder) SetCustomerData(inv *invoice.Invoice) *builder {
   b.request.Phone = inv.BillingAddress.PhoneNumber
   return b
 }
 
-func (b *eWalletRequestBuilder) SetPrice(inv *invoice.Invoice) *eWalletRequestBuilder {
+func (b *builder) SetPrice(inv *invoice.Invoice) *builder {
   b.request.Amount = inv.GetTotal()
   return b
 }
 
-func (b *eWalletRequestBuilder) SetPaymentMethod(m goxendit.EWalletTypeEnum) *eWalletRequestBuilder {
+func (b *builder) SetPaymentMethod(m goxendit.EWalletTypeEnum) *builder {
   b.request.EWalletType = m
   return b
 }
 
-func (b *eWalletRequestBuilder) SetCallback(url string) *eWalletRequestBuilder {
+func (b *builder) SetCallback(url string) *builder {
   b.request.CallbackURL = url
   return b
 }
 
-func (b *eWalletRequestBuilder) SetRedirect(url string) *eWalletRequestBuilder {
+func (b *builder) SetRedirect(url string) *builder {
   b.request.RedirectURL = url
   return b
 }
 
-func (b *eWalletRequestBuilder) Build() (*ewallet.CreatePaymentParams, error) {
+func (b *builder) Build() (*ewallet.CreatePaymentParams, error) {
   // TODO validate the request
   // phone number for ovo must be 08xxxxx format only for ovo
   return b.request, nil

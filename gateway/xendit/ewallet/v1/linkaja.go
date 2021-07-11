@@ -12,7 +12,7 @@ import (
 // NewLinkAja create xendit payment request for LinkAja
 func NewLinkAja(inv *invoice.Invoice) (*ewallet.CreatePaymentParams, error) {
 
-  return mewEWalletRequest(inv).
+  return newBuilder(inv).
     SetPaymentMethod(goxendit.EWalletTypeLINKAJA).
     SetCallback(os.Getenv("LINKAJA_LEGACY_CALLBACK_URL")).
     SetRedirect(os.Getenv("LINKAJA_LEGACY_REDIRECT_URL")).

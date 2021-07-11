@@ -21,7 +21,7 @@ func NewOVO(inv *invoice.Invoice) (*ewallet.CreatePaymentParams, error) {
     return nil, fmt.Errorf("invalid phone number. must be in 08xxxx format")
   }
 
-  return mewEWalletRequest(inv).
+  return newBuilder(inv).
     SetPaymentMethod(goxendit.EWalletTypeOVO).
     Build()
 }

@@ -1,23 +1,20 @@
-package xendit
+package xeninvoice
 
 import (
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/imrenagi/go-payment/invoice"
 	xinvoice "github.com/xendit/xendit-go/invoice"
+
+	"github.com/imrenagi/go-payment/invoice"
 )
 
-type invoiceRequestBuilder interface {
-	Build() (*xinvoice.CreateParams, error)
-}
-
-func NewInvoiceRequestBuilder(inv *invoice.Invoice) *InvoiceRequestBuilder {
+func newBuilder(inv *invoice.Invoice) *builer {
 
 	var shouldSendEmail bool = true
 
-	b := &InvoiceRequestBuilder{
+	b := &builer{
 		request: &xinvoice.CreateParams{
 			ExternalID:         inv.Number,
 			ShouldSendEmail:    &shouldSendEmail,
@@ -34,21 +31,21 @@ func NewInvoiceRequestBuilder(inv *invoice.Invoice) *InvoiceRequestBuilder {
 		SetExpiration(inv)
 }
 
-type InvoiceRequestBuilder struct {
+type builer struct {
 	request *xinvoice.CreateParams
 }
 
-func (b *InvoiceRequestBuilder) SetPrice(inv *invoice.Invoice) *InvoiceRequestBuilder {
+func (b *builer) SetPrice(inv *invoice.Invoice) *builer {
 	b.request.Amount = inv.GetTotal()
 	return b
 }
 
-func (b *InvoiceRequestBuilder) SetCustomerData(inv *invoice.Invoice) *InvoiceRequestBuilder {
+func (b *builer) SetCustomerData(inv *invoice.Invoice) *builer {
 	b.request.PayerEmail = inv.BillingAddress.Email
 	return b
 }
 
-func (b *InvoiceRequestBuilder) SetItemDetails(inv *invoice.Invoice) *InvoiceRequestBuilder {
+func (b *builer) SetItemDetails(inv *invoice.Invoice) *builer {
 
 	if inv.LineItems == nil || len(inv.LineItems) == 0 {
 		return b
@@ -65,12 +62,12 @@ func (b *InvoiceRequestBuilder) SetItemDetails(inv *invoice.Invoice) *InvoiceReq
 	return b
 }
 
-func (b *InvoiceRequestBuilder) SetExpiration(inv *invoice.Invoice) *InvoiceRequestBuilder {
+func (b *builer) SetExpiration(inv *invoice.Invoice) *builer {
 	b.request.InvoiceDuration = int(inv.DueDate.Sub(inv.InvoiceDate).Seconds())
 	return b
 }
 
-func (b *InvoiceRequestBuilder) AddPaymentMethod(m string) *InvoiceRequestBuilder {
+func (b *builer) AddPaymentMethod(m string) *builer {
 	switch strings.ToUpper(m) {
 	case "BCA",
 		"BRI",
@@ -87,7 +84,7 @@ func (b *InvoiceRequestBuilder) AddPaymentMethod(m string) *InvoiceRequestBuilde
 	return b
 }
 
-func (b *InvoiceRequestBuilder) Build() (*xinvoice.CreateParams, error) {
+func (b *builer) Build() (*xinvoice.CreateParams, error) {
 	// TODO validate the request
 	return b.request, nil
 }

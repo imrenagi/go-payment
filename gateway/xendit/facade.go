@@ -9,7 +9,8 @@ import (
   "github.com/imrenagi/go-payment"
   v1 "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v1"
   v2 "github.com/imrenagi/go-payment/gateway/xendit/ewallet/v2"
-  "github.com/imrenagi/go-payment/invoice"
+	"github.com/imrenagi/go-payment/gateway/xendit/xeninvoice"
+	"github.com/imrenagi/go-payment/invoice"
 )
 
 // NewEWalletChargeRequestFromInvoice create ewallet charge params for xendit ewallet API
@@ -41,39 +42,28 @@ func NewEwalletRequestFromInvoice(inv *invoice.Invoice) (*ewallet.CreatePaymentP
 }
 
 func NewInvoiceRequestFromInvoice(inv *invoice.Invoice) (*xinvoice.CreateParams, error) {
-
-  var reqBuilder invoiceRequestBuilder
-  var err error
-
-  req := NewInvoiceRequestBuilder(inv)
-
   switch inv.Payment.PaymentType {
   case payment.SourceOvo:
-    reqBuilder, err = NewOVOInvoice(req)
+    return xeninvoice.NewOVO(inv)
   case payment.SourceDana:
-    reqBuilder, err = NewDanaInvoice(req)
+    return xeninvoice.NewDana(inv)
   case payment.SourceLinkAja:
-    reqBuilder, err = NewLinkAjaInvoice(req)
+    return xeninvoice.NewLinkAja(inv)
   case payment.SourceAlfamart:
-    reqBuilder, err = NewAlfamartInvoice(req)
+    return xeninvoice.NewAlfamart(inv)
   case payment.SourceBCAVA:
-    reqBuilder, err = NewBCAVAInvoice(req)
+    return xeninvoice.NewBCAVA(inv)
   case payment.SourceBRIVA:
-    reqBuilder, err = NewBRIVAInvoice(req)
+    return xeninvoice.NewBRIVA(inv)
   case payment.SourceBNIVA:
-    reqBuilder, err = NewBNIVAInvoice(req)
+    return xeninvoice.NewBNIVA(inv)
   case payment.SourcePermataVA:
-    reqBuilder, err = NewPermataVAInvoice(req)
+    return xeninvoice.NewPermataVA(inv)
   case payment.SourceMandiriVA:
-    reqBuilder, err = NewMandiriVAInvoice(req)
+    return xeninvoice.NewMandiriVA(inv)
   case payment.SourceCreditCard:
-    reqBuilder, err = NewCreditCardInvoice(req)
+    return xeninvoice.NewCreditCard(inv)
   default:
     return nil, fmt.Errorf("payment type is not known")
   }
-  if err != nil {
-    return nil, err
-  }
-
-  return reqBuilder.Build()
 }

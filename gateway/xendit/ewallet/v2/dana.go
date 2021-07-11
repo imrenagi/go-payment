@@ -15,7 +15,7 @@ func NewDana(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
     "success_redirect_url": os.Getenv("DANA_SUCCESS_REDIRECT_URL"),
   }
 
-  return newEWalletChargeRequestBuilder(inv).
+  return newBuilder(inv).
     SetPaymentMethod(EWalletIDDana).
     SetChannelProperties(props).
     Build()

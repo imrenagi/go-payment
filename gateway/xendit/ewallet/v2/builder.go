@@ -18,9 +18,9 @@ const (
   EwalletIDShopeePay EWalletTypeEnum = "ID_SHOPEEPAY"
 )
 
-func newEWalletChargeRequestBuilder(inv *invoice.Invoice) *eWalletChargeRequestBuilder {
+func newBuilder(inv *invoice.Invoice) *builer {
 
-  b := &eWalletChargeRequestBuilder{
+  b := &builer{
     request: &xenewallet.CreateEWalletChargeParams{
       ReferenceID:    inv.Number,
       CheckoutMethod: "ONE_TIME_PAYMENT",
@@ -34,22 +34,22 @@ func newEWalletChargeRequestBuilder(inv *invoice.Invoice) *eWalletChargeRequestB
   return b
 }
 
-type eWalletChargeRequestBuilder struct {
+type builer struct {
   request *xenewallet.CreateEWalletChargeParams
 }
 
-func (b *eWalletChargeRequestBuilder) setCustomerData(inv *invoice.Invoice) *eWalletChargeRequestBuilder {
+func (b *builer) setCustomerData(inv *invoice.Invoice) *builer {
   // b.request.CustomerID = inv.BillingAddress.Email
   return b
 }
 
-func (b *eWalletChargeRequestBuilder) setPrice(inv *invoice.Invoice) *eWalletChargeRequestBuilder {
+func (b *builer) setPrice(inv *invoice.Invoice) *builer {
   b.request.Amount = inv.GetTotal()
   b.request.Currency = inv.Currency
   return b
 }
 
-func (b *eWalletChargeRequestBuilder) setItems(inv *invoice.Invoice) *eWalletChargeRequestBuilder {
+func (b *builer) setItems(inv *invoice.Invoice) *builer {
   if inv.LineItems == nil {
     return b
   }
@@ -72,97 +72,16 @@ func (b *eWalletChargeRequestBuilder) setItems(inv *invoice.Invoice) *eWalletCha
   return b
 }
 
-func (b *eWalletChargeRequestBuilder) SetPaymentMethod(m EWalletTypeEnum) *eWalletChargeRequestBuilder {
+func (b *builer) SetPaymentMethod(m EWalletTypeEnum) *builer {
   b.request.ChannelCode = string(m)
   return b
 }
 
-func (b *eWalletChargeRequestBuilder) SetChannelProperties(props map[string]string) *eWalletChargeRequestBuilder {
+func (b *builer) SetChannelProperties(props map[string]string) *builer {
   b.request.ChannelProperties = props
   return b
 }
 
-func (b *eWalletChargeRequestBuilder) Build() (*xenewallet.CreateEWalletChargeParams, error) {
-  return b.request, nil
-}
-
-type ewalletRequestBuilder interface {
-  Build() (*xenewallet.CreatePaymentParams, error)
-}
-
-// Deprecated: NewEWalletRequest generate legacy ewallet body request for xendit. This API is
-// deprecated. Consider to use the newEWalletChargeRequestBuilder
-func NewEWalletRequest(inv *invoice.Invoice) *EWalletRequestBuilder {
-
-  b := &EWalletRequestBuilder{
-    request: &xenewallet.CreatePaymentParams{
-      XApiVersion: "2020-02-01",
-      ExternalID:  inv.Number,
-    },
-  }
-
-  return b.SetCustomerData(inv).
-    SetPrice(inv).
-    SetItemDetails(inv).
-    SetExpiration(inv)
-}
-
-type EWalletRequestBuilder struct {
-  request *xenewallet.CreatePaymentParams
-}
-
-func (b *EWalletRequestBuilder) SetItemDetails(inv *invoice.Invoice) *EWalletRequestBuilder {
-
-  if inv.LineItems == nil {
-    return b
-  }
-
-  var out []xenewallet.Item
-  for _, item := range inv.LineItems {
-    out = append(out, xenewallet.Item{
-      ID:       item.Category,
-      Name:     item.Name,
-      Price:    item.UnitPrice,
-      Quantity: item.Qty,
-    })
-  }
-
-  b.request.Items = out
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetExpiration(inv *invoice.Invoice) *EWalletRequestBuilder {
-  b.request.ExpirationDate = &inv.DueDate
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetCustomerData(inv *invoice.Invoice) *EWalletRequestBuilder {
-  b.request.Phone = inv.BillingAddress.PhoneNumber
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetPrice(inv *invoice.Invoice) *EWalletRequestBuilder {
-  b.request.Amount = inv.GetTotal()
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetPaymentMethod(m goxendit.EWalletTypeEnum) *EWalletRequestBuilder {
-  b.request.EWalletType = m
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetCallback(url string) *EWalletRequestBuilder {
-  b.request.CallbackURL = url
-  return b
-}
-
-func (b *EWalletRequestBuilder) SetRedirect(url string) *EWalletRequestBuilder {
-  b.request.RedirectURL = url
-  return b
-}
-
-func (b *EWalletRequestBuilder) Build() (*xenewallet.CreatePaymentParams, error) {
-  // TODO validate the request
-  // phone number for ovo must be 08xxxxx format only for ovo
+func (b *builer) Build() (*xenewallet.CreateEWalletChargeParams, error) {
   return b.request, nil
 }

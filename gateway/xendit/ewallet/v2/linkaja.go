@@ -15,7 +15,7 @@ func NewLinkAja(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error
     "success_redirect_url": os.Getenv("LINKAJA_SUCCESS_REDIRECT_URL"),
   }
 
-  return newEWalletChargeRequestBuilder(inv).
+  return newBuilder(inv).
     SetPaymentMethod(EWalletIDLinkAja).
     SetChannelProperties(props).
     Build()
