@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/datastore"
 	midgateway "github.com/imrenagi/go-payment/gateway/midtrans"
@@ -12,8 +15,6 @@ import (
 	"github.com/imrenagi/go-payment/invoice"
 	"github.com/imrenagi/go-payment/subscription"
 	"github.com/imrenagi/go-payment/util/localconfig"
-
-	"github.com/rs/zerolog"
 )
 
 // NewManager creates a new payment manager
@@ -116,6 +117,11 @@ func (m *Manager) GetInvoice(ctx context.Context, number string) (*invoice.Invoi
 // GenerateInvoice generates new invoice
 func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceRequest) (*invoice.Invoice, error) {
 
+	l := log.Ctx(ctx).With().
+		Str("function", "Manager.GenerateInvoice").
+		Str("payment_type", string(gir.Payment.PaymentType)).
+		Logger()
+
 	var opts []payment.Option
 	if gir.Payment.CreditCardDetail != nil {
 		opts = append(opts, payment.WithCreditCard(
@@ -125,8 +131,11 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 		))
 	}
 
+	l.Debug().Msg("starting to generate the invoice")
+
 	paymentConfig, err := m.paymentConfigRepository.FindByPaymentType(ctx, gir.Payment.PaymentType, opts...)
 	if err != nil {
+		l.Warn().Err(err).Msg("unable to find the registered payment method")
 		return nil, err
 	}
 
@@ -136,6 +145,10 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 	}
 
 	inv := invoice.NewDefault()
+	l = l.With().
+		Str("invoice_number", inv.Number).
+		Logger()
+
 	var items []invoice.LineItem
 	for _, item := range gir.Items {
 		i := invoice.NewLineItem(
@@ -150,22 +163,29 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 		items = append(items, *i)
 	}
 	if err = inv.SetItems(ctx, items); err != nil {
+		l.Debug().Err(err).Msg("unable to set items to the invoice")
 		return nil, err
 	}
 
 	if err = inv.UpsertBillingAddress(gir.Customer.Name, gir.Customer.Email, gir.Customer.PhoneNumber); err != nil {
+		l.Debug().Err(err).Msg("unable to set billing address to the invoice")
 		return nil, err
 	}
 
 	if err = inv.UpdatePaymentMethod(ctx, payment, m.paymentConfigRepository, opts...); err != nil {
+		l.Warn().Err(err).Msg("unable to update payment method and all fee")
 		return nil, err
 	}
 
+	l.Info().Msg("publishing the invoice")
 	if err = inv.Publish(ctx); err != nil {
+		l.Error().Err(err).Msg("unable to publish the invoice")
 		return nil, err
 	}
 
+	l.Info().Msg("creating charge request to the payment gateway")
 	if err = inv.CreateChargeRequest(ctx, m.charger(inv)); err != nil {
+		l.Error().Err(err).Msg("unable to create charge request to payment gateway")
 		return nil, err
 	}
 
@@ -173,6 +193,7 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 		return nil, err
 	}
 
+	l.Info().Msg("invoice is created")
 	return inv, nil
 }
 
@@ -180,6 +201,7 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 func (m *Manager) PayInvoice(ctx context.Context, pir *PayInvoiceRequest) (*invoice.Invoice, error) {
 
 	log := zerolog.Ctx(ctx).With().
+		Str("function", "Manager.PayInvoice").
 		Str("invoice_number", pir.InvoiceNumber).
 		Logger()
 
@@ -188,11 +210,14 @@ func (m *Manager) PayInvoice(ctx context.Context, pir *PayInvoiceRequest) (*invo
 		return nil, nil
 	}
 	if err != nil && !errors.Is(err, payment.ErrNotFound) {
+		log.Error().Err(err).Msg("unable to find invoice")
 		return nil, err
 	}
 
+	log.Info().Msg("tying to complete payment")
 	err = inv.Pay(ctx, pir.TransactionID)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to complete the payment")
 		return nil, err
 	}
 
@@ -201,7 +226,7 @@ func (m *Manager) PayInvoice(ctx context.Context, pir *PayInvoiceRequest) (*invo
 		return nil, err
 	}
 
-	log.Debug().Msg("invoice paid")
+	log.Info().Msg("invoice paid")
 
 	return inv, nil
 }
@@ -210,13 +235,21 @@ func (m *Manager) PayInvoice(ctx context.Context, pir *PayInvoiceRequest) (*invo
 // methods that requires payment action from the user after they choose a payment method/see payment instruction
 func (m *Manager) ProcessInvoice(ctx context.Context, invoiceNumber string) (*invoice.Invoice, error) {
 
+	log := zerolog.Ctx(ctx).With().
+		Str("function", "Manager.ProcessInvoice").
+		Str("invoice_number", invoiceNumber).
+		Logger()
+
 	inv, err := m.invoiceRepository.FindByNumber(ctx, invoiceNumber)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Info().Msg("processing invoice")
+
 	err = inv.Process(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to process the invoice")
 		return nil, err
 	}
 
@@ -225,11 +258,18 @@ func (m *Manager) ProcessInvoice(ctx context.Context, invoiceNumber string) (*in
 		return nil, err
 	}
 
+	log.Info().Msg("invoice is processed")
 	return inv, nil
 }
 
 // FailInvoice fails an invoice if the payment is either failed or expired
 func (m *Manager) FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*invoice.Invoice, error) {
+
+	log := zerolog.Ctx(ctx).With().
+		Str("function", "Manager.FailInvoice").
+		Str("invoice_number", fir.InvoiceNumber).
+		Logger()
+
 	inv, err := m.invoiceRepository.FindByNumber(ctx, fir.InvoiceNumber)
 	if errors.Is(err, payment.ErrNotFound) {
 		return nil, nil
@@ -238,8 +278,10 @@ func (m *Manager) FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*in
 		return nil, err
 	}
 
+	log.Info().Msg("trying to fail the invoice")
 	err = inv.Fail(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("unable to fail the invoice")
 		return nil, err
 	}
 
@@ -247,6 +289,7 @@ func (m *Manager) FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*in
 	if err != nil {
 		return nil, err
 	}
+	log.Info().Msg("invoice is failed")
 	return inv, nil
 }
 

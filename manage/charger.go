@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/imrenagi/go-payment"
 	midfactory "github.com/imrenagi/go-payment/gateway/midtrans"
 	midgateway "github.com/imrenagi/go-payment/gateway/midtrans"
@@ -90,6 +92,12 @@ func (c xenditCharger) eWalletChargeMethod(cfg localconfig.EWalletConfig) charge
 // Deprecated: createLegacyEWalletCharge ...
 func (c xenditCharger) createLegacyEWalletCharge(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditCharger.createLegacyEWalletCharge").
+		Logger()
+
+	l.Debug().Msg("generating ewallet request")
+
 	ewalletRequest, err := factory.NewEwalletRequestFromInvoice(inv)
 	if err != nil {
 		return nil, err
@@ -99,20 +107,29 @@ func (c xenditCharger) createLegacyEWalletCharge(ctx context.Context, inv *invoi
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(bytes))
+
+	l.Debug().
+		RawJSON("payload", bytes).
+		Msg("ewallet request is created")
 
 	xres, err := c.XenditGateway.Ewallet.CreatePayment(ewalletRequest)
-	fmt.Println(err)
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return nil, xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to create payment")
+			return nil, xError
+		}
 	}
 
 	if xres.Status == "PENDING" {
+		l.Info().Msg("set invoice to pending")
 		if err := inv.Process(ctx); err != nil {
+			l.Error().Err(err).Msg("unable to set invoice to pending")
 			return nil, err
 		}
 	}
+
+	l.Info().Msg("ewallet request is created")
 
 	return &invoice.ChargeResponse{
 		PaymentURL:    xres.CheckoutURL,
@@ -121,6 +138,13 @@ func (c xenditCharger) createLegacyEWalletCharge(ctx context.Context, inv *invoi
 }
 
 func (c xenditCharger) createEWalletCharge(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditCharger.createEWalletCharge").
+		Logger()
+
+	l.Debug().Msg("generating ewallet request")
+
 	ewChargeParams, err := factory.NewEWalletChargeRequestFromInvoice(inv)
 	if err != nil {
 		return nil, err
@@ -130,16 +154,24 @@ func (c xenditCharger) createEWalletCharge(ctx context.Context, inv *invoice.Inv
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(bytes))
+
+	l.Debug().
+		RawJSON("payload", bytes).
+		Msg("ewallet request is created")
 
 	chargeRes, err := c.XenditGateway.Ewallet.CreateEWalletChargeWithContext(ctx, ewChargeParams)
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return nil, xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to create payment")
+			return nil, xError
+		}
 	}
 
 	if chargeRes.Status == "PENDING" {
+		l.Info().Msg("set invoice to pending")
 		if err := inv.Process(ctx); err != nil {
+			l.Error().Err(err).Msg("unable to set invoice to pending")
 			return nil, err
 		}
 	}
@@ -150,13 +182,21 @@ func (c xenditCharger) createEWalletCharge(ctx context.Context, inv *invoice.Inv
 		paymentURL = url
 	}
 
+	l.Info().Msg("ewallet request is created")
+
 	return &invoice.ChargeResponse{
-		PaymentURL:    paymentURL, // TODO handle mobile url etc
+		PaymentURL:    paymentURL, //TODO(imre) handle mobile url etc
 		TransactionID: chargeRes.ID,
 	}, nil
 }
 
 func (c xenditCharger) createXenInvoice(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditCharger.createXenInvoice").
+		Logger()
+
+	l.Debug().Msg("generating xeninvoice request")
 
 	invoiceRequest, err := factory.NewInvoiceRequestFromInvoice(inv)
 	if err != nil {
@@ -167,19 +207,28 @@ func (c xenditCharger) createXenInvoice(ctx context.Context, inv *invoice.Invoic
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(bytes))
+	l.Debug().
+		RawJSON("payload", bytes).
+		Msg("xeninvoice request is created")
 
 	xres, err := c.XenditGateway.Invoice.CreateWithContext(ctx, invoiceRequest)
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return nil, xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to create payment")
+			return nil, xError
+		}
 	}
 
 	if xres.Status == "PENDING" {
+		l.Info().Msg("set invoice to pending")
 		if err := inv.Process(ctx); err != nil {
+			l.Error().Err(err).Msg("unable to set invoice to pending")
 			return nil, err
 		}
 	}
+
+	l.Info().Msg("xeninvoice request is created")
 
 	return &invoice.ChargeResponse{
 		PaymentURL:    xres.InvoiceURL,

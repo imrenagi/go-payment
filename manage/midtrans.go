@@ -17,7 +17,7 @@ func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response
 
 	log := zerolog.Ctx(ctx).
 		With().
-		Str("function", "PaymentService.ProcessMidtransCallback()").
+		Str("function", "PaymentService.ProcessMidtransCallback").
 		Str("cmd_order_id", mr.OrderID).
 		Str("cmd_transaction_id", mr.TransactionID).
 		Str("cmd_gross_amount", mr.GrossAmount).
@@ -76,6 +76,7 @@ func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response
 	}
 
 	if err := storedStatus.IsValid(m.midtransGateway.NotificationValidationKey()); err != nil {
+		log.Warn().Err(err).Msg("invalid notification callback key")
 		return err
 	}
 
@@ -98,10 +99,13 @@ func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response
 func (m *Manager) processNotification(ctx context.Context, status midtrans.TransactionStatus) error {
 
 	log := zerolog.Ctx(ctx).With().
+		Str("function", "Manager.processNotification").
 		Str("transaction_status", status.TransactionStatus).
 		Str("payment_type", status.PaymentType).
 		Str("fraud_status", status.FraudStatus).
 		Logger()
+
+	log.Info().Msg("processing midtrans notification")
 
 	switch status.TransactionStatus {
 	case "capture":
@@ -124,6 +128,7 @@ func (m *Manager) processNotification(ctx context.Context, status midtrans.Trans
 			TransactionID: status.TransactionID,
 		})
 		if err != nil {
+			log.Error().Err(err).Msg("unable to set invoice to paid")
 			return err
 		}
 	case "deny", "expire", "cancel":
@@ -133,11 +138,13 @@ func (m *Manager) processNotification(ctx context.Context, status midtrans.Trans
 			Reason:        status.TransactionStatus,
 		})
 		if err != nil {
+			log.Error().Err(err).Msg("unable to set invoice to failed")
 			return err
 		}
 	case "pending":
 		_, err := m.ProcessInvoice(ctx, status.OrderID)
 		if err != nil {
+			log.Error().Err(err).Msg("unable to set invoice to pending")
 			return err
 		}
 	default:

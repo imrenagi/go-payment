@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/imrenagi/go-payment"
 
@@ -21,6 +22,11 @@ type xenditSubscriptionController struct {
 }
 
 func (sc xenditSubscriptionController) Create(ctx context.Context, sub *subscription.Subscription) (*subscription.CreateResponse, error) {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditSubscriptionController.Create").
+		Logger()
+
 	recurringRequest, err := factory.NewRecurringChargeRequestBuilder(sub).Build()
 	if err != nil {
 		return nil, err
@@ -30,13 +36,20 @@ func (sc xenditSubscriptionController) Create(ctx context.Context, sub *subscrip
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(bytes))
+	l.Debug().
+		RawJSON("payload", bytes).
+		Msg("recurring request payload is created")
 
 	xres, err := sc.XenditGateway.Recurring.CreateWithContext(ctx, recurringRequest)
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return nil, xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to create recurring request")
+			return nil, xError
+		}
 	}
+
+	l.Info().Msg("recurring request is created successfully")
 
 	return &subscription.CreateResponse{
 		ID:                    xres.ID,
@@ -46,35 +59,63 @@ func (sc xenditSubscriptionController) Create(ctx context.Context, sub *subscrip
 }
 
 func (sc xenditSubscriptionController) Resume(ctx context.Context, sub *subscription.Subscription) error {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditSubscriptionController.Resume").
+		Logger()
+
 	_, err := sc.XenditGateway.Recurring.ResumeWithContext(ctx, &xrecurring.ResumeParams{
 		ID: sub.GatewayRecurringID,
 	})
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to resume subscription")
+			return xError
+		}
 	}
+
+	l.Info().Msg("resume subscription request is completed")
 	return nil
 }
 
 func (sc xenditSubscriptionController) Stop(ctx context.Context, sub *subscription.Subscription) error {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditSubscriptionController.Stop").
+		Logger()
+
 	_, err := sc.XenditGateway.Recurring.StopWithContext(ctx, &xrecurring.StopParams{
 		ID: sub.GatewayRecurringID,
 	})
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to stop subscription")
+			return xError
+		}
 	}
+	l.Info().Msg("stop subscription request is completed")
 	return nil
 }
 
 func (sc xenditSubscriptionController) Pause(ctx context.Context, sub *subscription.Subscription) error {
+
+	l := log.Ctx(ctx).With().
+		Str("function", "xenditSubscriptionController.Stop").
+		Logger()
+
 	_, err := sc.XenditGateway.Recurring.PauseWithContext(ctx, &xrecurring.PauseParams{
 		ID: sub.GatewayRecurringID,
 	})
-	var xError *goxendit.Error
-	if ok := errors.As(err, &xError); ok && xError != nil {
-		return xError
+	if err != nil {
+		var xError *goxendit.Error
+		if ok := errors.As(err, &xError); ok && xError != nil {
+			l.Error().Err(xError).Msg("unable to pause subscription")
+			return xError
+		}
 	}
+	l.Info().Msg("pause subscription request is completed")
 	return nil
 }
 
