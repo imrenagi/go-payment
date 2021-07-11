@@ -19,11 +19,7 @@ const (
   EwalletIDShopeePay EWalletTypeEnum = "ID_SHOPEEPAY"
 )
 
-type ewalletRequestBuilderV2 interface {
-  Build() (*ewallet.CreateEWalletChargeParams, error)
-}
-
-func NewEWalletChargeRequestBuilder(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
+func newEWalletChargeRequestBuilder(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
 
   b := &EWalletChargeRequestBuilder{
     request: &ewallet.CreateEWalletChargeParams{
@@ -45,13 +41,12 @@ type EWalletChargeRequestBuilder struct {
 
 func (b *EWalletChargeRequestBuilder) setCustomerData(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
   // b.request.CustomerID = inv.BillingAddress.Email
-
   return b
 }
 
 func (b *EWalletChargeRequestBuilder) setPrice(inv *invoice.Invoice) *EWalletChargeRequestBuilder {
   b.request.Amount = inv.GetTotal()
-  b.request.Currency = "IDR"
+  b.request.Currency = inv.Currency
   return b
 }
 
@@ -89,16 +84,15 @@ func (b *EWalletChargeRequestBuilder) SetChannelProperties(props map[string]stri
 }
 
 func (b *EWalletChargeRequestBuilder) Build() (*ewallet.CreateEWalletChargeParams, error) {
-  // TODO validate the request
-  // TODO phone number must be in +62xxxx format only for ovo
   return b.request, nil
 }
-
 
 type ewalletRequestBuilder interface {
   Build() (*ewallet.CreatePaymentParams, error)
 }
 
+// Deprecated: NewEWalletRequest generate legacy ewallet body request for xendit. This API is
+// deprecated. Consider to use the newEWalletChargeRequestBuilder
 func NewEWalletRequest(inv *invoice.Invoice) *EWalletRequestBuilder {
 
   b := &EWalletRequestBuilder{

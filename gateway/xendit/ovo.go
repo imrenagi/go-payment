@@ -6,6 +6,8 @@ import (
   goxendit "github.com/xendit/xendit-go"
   "github.com/xendit/xendit-go/ewallet"
   xinvoice "github.com/xendit/xendit-go/invoice"
+
+  "github.com/imrenagi/go-payment/invoice"
 )
 
 // NewOVO create xendit payment request for ovo
@@ -56,31 +58,23 @@ func (o *OVOInvoice) Build() (*xinvoice.CreateParams, error) {
 }
 
 // NewOVOCharge is factory for OVO payment with xendit latest charge API
-func NewOVOCharge(rb *EWalletChargeRequestBuilder, phone string) (*OVOCharge, error) {
-  return &OVOCharge{
-    phone: phone,
-    rb:    rb,
-  }, nil
-}
+func NewOVOCharge(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
 
-type OVOCharge struct {
-  phone string
-  rb    *EWalletChargeRequestBuilder
-}
+  if inv.BillingAddress == nil {
+    return nil, fmt.Errorf("customer phone number is required")
+  }
 
-func (o *OVOCharge) Build() (*ewallet.CreateEWalletChargeParams, error) {
-
-  if !OvoChargePhoneValidator.IsValid(o.phone) {
+  if !OvoChargePhoneValidator.IsValid(inv.BillingAddress.PhoneNumber) {
     return nil, fmt.Errorf("invalid phone format. must be in +628xxxxxx format")
   }
 
   props := map[string]string{
-    "mobile_number": o.phone,
+    "mobile_number": inv.BillingAddress.PhoneNumber,
   }
 
-  o.rb.
+  return newEWalletChargeRequestBuilder(inv).
     SetPaymentMethod(EWalletIDOVO).
-    SetChannelProperties(props)
-
-  return o.rb.Build()
+    SetChannelProperties(props).
+    Build()
 }
+

@@ -13,27 +13,16 @@ import (
 
 // NewEWalletChargeRequestFromInvoice create ewallet charge params for xendit ewallet API
 func NewEWalletChargeRequestFromInvoice(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
-
-	var reqBuilder ewalletRequestBuilderV2
-	var err error
-
-	rb := NewEWalletChargeRequestBuilder(inv)
-
 	switch inv.Payment.PaymentType {
 	case payment.SourceOvo:
-		reqBuilder, err = NewOVOCharge(rb, inv.BillingAddress.PhoneNumber)
+		return NewOVOCharge(inv)
 	case payment.SourceDana:
-		reqBuilder, err = NewDanaCharge(rb)
+		return NewDanaCharge(inv)
 	case payment.SourceLinkAja:
-		reqBuilder, err = NewLinkAjaCharge(rb)
+		return NewLinkAjaCharge(inv)
 	default:
 		return nil, fmt.Errorf("unsupported payment method")
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	return reqBuilder.Build()
 }
 
 // Deprecated: NewEwalletRequestFromInvoice creates ewallet request for xendit

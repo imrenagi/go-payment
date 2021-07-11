@@ -6,6 +6,8 @@ import (
 	goxendit "github.com/xendit/xendit-go"
 	"github.com/xendit/xendit-go/ewallet"
 	xinvoice "github.com/xendit/xendit-go/invoice"
+
+	"github.com/imrenagi/go-payment/invoice"
 )
 
 // NewLinkAja create xendit payment request for LinkAja
@@ -55,25 +57,15 @@ func (o *LinkAjaInvoice) Build() (*xinvoice.CreateParams, error) {
 	return req, nil
 }
 
-// NewLinkAjaCharge is factory for Dana payment with xendit latest charge API
-func NewLinkAjaCharge(rb *EWalletChargeRequestBuilder) (*LinkAjaCharge, error) {
-	return &LinkAjaCharge{
-		rb:    rb,
-	}, nil
-}
-
-type LinkAjaCharge struct {
-	phone string
-	rb    *EWalletChargeRequestBuilder
-}
-
-func (o *LinkAjaCharge) Build() (*ewallet.CreateEWalletChargeParams, error) {
+// NewLinkAjaCharge is factory for LinkAja payment with xendit latest charge API
+func NewLinkAjaCharge(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
 
 	props := map[string]string{
 		"success_redirect_url": os.Getenv("LINKAJA_SUCCESS_REDIRECT_URL"),
 	}
 
-	o.rb.SetPaymentMethod(EWalletIDLinkAja).
-		SetChannelProperties(props)
-	return o.rb.Build()
+	return newEWalletChargeRequestBuilder(inv).
+		SetPaymentMethod(EWalletIDLinkAja).
+		SetChannelProperties(props).
+		Build()
 }
