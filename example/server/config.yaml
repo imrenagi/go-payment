@@ -1,8 +1,5 @@
-midtrans: {}
-
 xendit:
   ewallet:
-    legacyEnabled: true
     ovo:
       invoice: false
       legacy: false

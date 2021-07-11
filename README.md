@@ -65,7 +65,7 @@ In general, this payment proxy can support payment through this following channe
 - You can opt-in to store payment notification callback to your database. Currently it only stores midtrans transaction status. Support for xendit will be added soon.
 
 ## Current Limitations
-1. For simplify the query creation for database join, I use [gorm.io](https://gorm.io/) as the ORM library. The repository interfaces are provided indeed. However, default implementations with [gorm.io](https://gorm.io/) for several entities are provided in `datastore/mysql` package.
+1. For simplify the query creation for database join, I use [gorm.io](https://gorm.io/) as the ORM library. 
 1. This proxy is not made for supporting all use cases available out there. It's hard requirement is just so that people can accept payment with as low effort as possible without need to worry about custom UI flow.
 1. No callback trigger at least of now once the payment manager is done procesing this request. This will be the next priority of the next release. This issue is documented [here](https://github.com/imrenagi/go-payment/issues/5)
 
@@ -134,16 +134,11 @@ Here is the comparison between Midtrans and Xendit onboarding based on my onboar
 
 ### Payment Gateway Callback
 
-Payment Gateway Callback is POST request sent by payment gateway to notify our backend about any changes happened with the payment. Either it is success, pending, or failed due to a reason. This proxy have it handled.
+Since this library is just providing the http.Handler, you can choose the REST API endpoint used by each callback. 
+You can check the example on [server.go](./example/server/server.go).
 
-| Payment Channel                        | Callback URL Path                  |
-| -------------------------------------- | ---------------------------------- |
-| All payments through Midtrans SNAP     | `/payment/midtrans/callback`       |
-| All payments through Xendit Invoice UI | `/payment/xendit/invoice/callback` |
-| Xendit Dana                            | `/payment/xendit/dana/callback`    |
-| Xendit LinkAja                         | `/payment/xendit/linkaja/callback` |
-
-> For payment with OVO, the proxy does not directly call OVO Ewallet API, but it uses Xendit Invoice UI instead. Thus, all payment callback/notification about OVO go to Xendit Invoice callback `/payment/xendit/invoice/callback`.
+> Some Xendit Legacy Ewallet API(s) require you to set callback and redirect URL on the body request. You can override this
+> value by using environment variables. Go to [Mandatory Environment Variables](#mandatory-environment-variables).
 
 #### Midtrans
 
@@ -167,30 +162,34 @@ To set your callback URL,
 - Check option **Also notify my application when an invoice is expired**
 - Click **Save and Test**
 
-> LinkAja and DANA callback URL are not defined on xendit dashboard. Instead, they are given while the proxy is initiating the payment request to Xendit API. You can find the callback URL set on [linkaja.go](/gateway/xendit/linkaja.go) and [dana.go](/gateway/xendit/dana.go)
+> LinkAja and DANA callback URL are not defined on xendit dashboard. Instead, they are given while the proxy is initiating the payment request to Xendit API. You can find the callback URL set on [linkaja.go](/gateway/xendit/ewallet/v1/linkaja.go) and [dana.go](/gateway/xendit/ewallet/v1/dana.go)
 
 ### Application Secret
 
 Before using this application, you might need to update [secret.yaml](/example/server/secret.yaml) file containing application secret like database and payment gateway credential.
 
-#### Database
+### Application Config
 
-For testing purpose, you can use mysql docker image to bootstrap a mysql database
-
-```console
-$ docker run --name some-mysql -e MYSQL_DATABASE=your-database-name -e MYSQL_USER=your-user -e MYSQL_PASSWORD=your-password -p 3306:3306 -d mysql:5.7
-```
-
-Then, please update the secret below with your database credential.
+As of now, application config stores configuration about which API that you would like to use for Xendit ewallet payments
+such as Dana, OVO, and LinkAja. Please check [config.yaml](/example/server/config.yaml).
 
 ```yaml
-db:
-  host: "127.0.0.1"
-  port: 3306
-  username: "your-user"
-  password: "your-password"
-  dbname: "your-database-name"
+xendit:
+  ewallet:
+    ovo:
+      invoice: false
+      legacy: false
 ```
+
+* `xendit.ewallet.[ewallet].invoice` set to true if you want to use XenInvoice instead of using direct API integration
+* `xendit.ewallet.[ewallet].legacy` set to true if you want to use **legacy** Xendit Ewallet API. Note that this API will be deprecated by first quarter of 2022.
+
+#### Database
+
+I removed MySQL as default database for this library. This library only accept instance of `gorm.DB` for database. 
+Thus, you can use any database you like and provide the `gorm.DB` instance of chosen database.
+
+For more, please check [server.go](/example/server/server.go)
 
 #### Midtrans Credential
 
@@ -309,4 +308,4 @@ No rules for now. Feel free to add issue first and optionally submit a PR. Cheer
 
 ## License
 
-Copyright 2020 [Imre Nagi](./LICENSE)
+MIT. Copyright 2022 [Imre Nagi](./LICENSE)
