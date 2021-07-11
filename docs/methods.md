@@ -5,7 +5,8 @@ Payment Methods API
 
 ### Request
 
-If you want to get the estimated admin/installment fee for each payment methods, provice this GET request with optional `price` and `currency` query. Otherwise, it returns nil `admin_fee` and `installment_fee`
+If you want to get the estimated admin/installment fee for each payment methods, provice this GET request with
+optional `price` and `currency` query. Otherwise, it returns nil `admin_fee` and `installment_fee`
 
 ```http
 GET /payment/methods?price=1000&currency=IDR

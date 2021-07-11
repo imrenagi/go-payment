@@ -3,7 +3,6 @@ package xendit
 import (
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/subscription"
-	xgo "github.com/xendit/xendit-go"
 )
 
 // NewStatus convert xendit status string to subscripiton status
@@ -42,26 +41,3 @@ func NewPaymentSource(s string) payment.PaymentType {
 	}
 }
 
-func missedPaymentAction(enum subscription.MissedPaymentAction) xgo.MissedPaymentActionEnum {
-	switch enum {
-	case subscription.MissedPaymentActionIgnore:
-		return xgo.MissedPaymentActionIgnore
-	case subscription.MissedPaymentActionStop:
-		return xgo.MissedPaymentActionStop
-	default:
-		return ""
-	}
-}
-
-func paymentIntervalUnit(enum subscription.IntervalUnit) xgo.RecurringPaymentIntervalEnum {
-	switch enum {
-	case subscription.IntervalUnitDay:
-		return xgo.RecurringPaymentIntervalDay
-	case subscription.IntervalUnitWeek:
-		return xgo.RecurringPaymentIntervalWeek
-	case subscription.IntervalUnitMonth:
-		return xgo.RecurringPaymentIntervalMonth
-	default:
-		return ""
-	}
-}

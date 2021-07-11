@@ -278,20 +278,22 @@ bank_transfers:
 
 ### Mandatory Environment Variables
 
-You need to set these mandatory environment variables to make sure this proxy to work.
+You need to set these environment variables to make sure this proxy to work.
 
-```bash
-# ENVIRONMENT can be either staging or prod
-export ENVIRONMENT=staging #use prod for production
-export LOG_LEVEL=DEBUG
-export SERVER_BASE_URL="http://localhost:8080"
-export WEB_BASE_URL="https://imrenagi.com"
-export SUCCESS_REDIRECT_PATH="/donate/thanks"
-export PENDING_REDIRECT_PATH="/donate/pending"
-export FAILED_REDIRECT_PATH="/donate/error"
-```
-
-> `SUCCESS_REDIRECT_PATH` and `FAILED_REDIRECT_PATH` will be concatenated with `WEB_BASE_URL` to form redirect URL when they payment is completed or failed. For instance, take a look to this [success](https://imrenagi.com/donate/thanks) and [failed](https://imrenagi.com/donate/error) page.
+| Environment Variable  | Required | Description | Example | 
+| ------------- | ------------- | ------------- | ------------- |
+| ENVIRONMENT  | yes  | decide whether the server is for testing or production. For production, use `prod`.  | `prod`  |
+| LOG_LEVEL  | no  | Log level. Default to `DEBUG`. Available values: `DEBUG`, `INFO`, `WARN`, `ERROR`  | `DEBUG`  |
+| INVOICE_SUCCESS_REDIRECT_URL | yes | Redirect URL used by xendit if invoice is successfully paid | `http://example.com/donate/thanks` |
+| INVOICE_FAILED_REDIRECT_URL | yes | Redirect URL used by xendit if invoice is failed  | `http://example.com/donate/error` |
+| DANA_LEGACY_CALLBACK_URL | yes, if you are using legacy ewallet xendit API | Callback URL used for xendit legacy ewallet API to send payment callback | `http://api.example.com/payment/xendit/dana/callback` |
+| DANA_LEGACY_REDIRECT_URL | yes, if you are using legacy ewallet xendit API | Redirect URL used by xendit legacy ewallet API to redirect user after payment succeeded  | `http://example.com/donate/thanks` |
+| LINKAJA_LEGACY_CALLBACK_URL | yes, if you are using legacy ewallet xendit API | Callback URL used for xendit legacy ewallet API to send payment callback | `http://api.example.com/payment/xendit/linkaja/callback` |
+| LINKAJA_LEGACY_REDIRECT_URL | yes, if you are using legacy ewallet xendit API | Redirect URL used by xendit legacy ewallet API to redirect user after payment succeeded  | `http://example.com/donate/thanks` |
+| RECURRING_SUCCESS_REDIRECT_URL | yes, if you are using subscription feature | Redirect URL used by xendit subscription API to redirect user after payment succeeded | `http://example.com/donate/thanks` |
+| RECURRING_FAILED_REDIRECT_URL | yes, if you are using subscription feature | Redirect URL used by xendit subscription API to redirect user after payment failed | `http://example.com/donate/error` |
+| DANA_SUCCESS_REDIRECT_URL | yes, if you are using new xendit ewallet API | Redirect URL used by xendit new ewallet API if payment with dana is success | `http://example.com/success` |
+| LINKAJA_SUCCESS_REDIRECT_URL | yes, if you are using new xendit ewallet API | Redirect URL used by xendit new ewallet API if payment with dana is failed | `http://example.com/success` |
 
 ## Example Code
 

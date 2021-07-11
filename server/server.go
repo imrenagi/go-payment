@@ -279,3 +279,37 @@ func (s *Server) XenditDanaCallbackHandler() http.HandlerFunc {
 		return
 	}
 }
+
+// XenditEWalletCallbackHandler handles incoming notification for xendit ewallet api
+func (s *Server) XenditEWalletCallbackHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		decoder := json.NewDecoder(r.Body)
+		var status xendit.EWalletPaymentStatus
+		err := decoder.Decode(&status)
+		if err != nil {
+			WriteFailResponse(w, http.StatusBadRequest, Error{
+				StatusCode: http.StatusBadRequest,
+				Message:    "Request can't be parsed",
+			})
+			return
+		}
+
+		cbToken, err := s.xenditCallbackToken(r)
+		if err != nil {
+			WriteFailResponse(w, http.StatusBadRequest, Error{
+				StatusCode: http.StatusBadRequest,
+				Message:    "cant read xendit callback token",
+			})
+			return
+		}
+		status.CallbackAuthToken = cbToken
+
+		err = s.Manager.ProcessXenditEWalletCallback(r.Context(), &status)
+		if err != nil {
+			WriteFailResponseFromError(w, err)
+			return
+		}
+		WriteSuccessResponse(w, http.StatusOK, Empty{}, nil)
+		return
+	}
+}
