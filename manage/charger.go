@@ -25,27 +25,32 @@ type midtransCharger struct {
 
 func (c midtransCharger) Create(ctx context.Context, inv *invoice.Invoice) (*invoice.ChargeResponse, error) {
 
-	snapRequest, err := midfactory.NewSnapRequestFromInvoice(inv)
+	l := log.Ctx(ctx).With().
+		Str("function", "midtransCharger.Create").
+		Str("invoice_number", inv.Number).
+		Logger()
+
+	snapRequest, err := midfactory.NewSnapFromInvoice(inv)
 	if err != nil {
 		return nil, err
 	}
 
-	// bytes, err := json.MarshalIndent(snapRequest, "", "\t")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Println(string(bytes))
-
-	resp, err := c.MidtransGateway.SnapGateway.GetToken(snapRequest)
+	bytes, err := json.MarshalIndent(snapRequest, "", "\t")
 	if err != nil {
+		return nil, err
+	}
+	l.Debug().
+		RawJSON("payload", bytes).
+		Msg("snap request is created")
+
+	resp, mErr := c.MidtransGateway.SnapV2Gateway.CreateTransaction(snapRequest)
+	if mErr != nil {
 		return nil, err
 	}
 
 	return &invoice.ChargeResponse{
 		PaymentToken: resp.Token,
 		PaymentURL:   resp.RedirectURL,
-		// TransactionID: resp.
-
 	}, nil
 }
 
