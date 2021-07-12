@@ -23,7 +23,6 @@ func NewGateway(creds localconfig.APICredential) *Gateway {
 	switch os.Getenv("ENVIRONMENT") {
 	case "prod":
 		midclient.APIEnvType = mgo.Production
-
 		snapClient.Env = midtrans.Production
 		snapClient.HttpClient = midtrans.GetHttpClient(midtrans.Production)
 	default:

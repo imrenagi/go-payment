@@ -130,6 +130,11 @@ func (b *builder) AddPaymentMethods(m snap.SnapPaymentType) *builder {
 	return b
 }
 
+func (b *builder) SetCreditCardDetail(d *snap.CreditCardDetails) *builder {
+	b.req.CreditCard = d
+	return b
+}
+
 func (b *builder) Build() (*snap.Request, error) {
 	return b.req, nil
 }

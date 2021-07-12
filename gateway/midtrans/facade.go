@@ -31,8 +31,8 @@ func NewSnapFromInvoice(inv *invoice.Invoice) (*midsnap.Request, error) {
 	//   reqBuilder, err = NewAlfamart(snapRequestBuilder)
 	// case payment.SourceAkulaku:
 	//   reqBuilder, err = NewAkulaku(snapRequestBuilder)
-	// case payment.SourceCreditCard:
-	//   reqBuilder, err = NewCreditCard(snapRequestBuilder, inv.Payment.CreditCardDetail)
+	case payment.SourceCreditCard:
+		return snap.NewCreditCard(inv)
 	default:
 		return nil, fmt.Errorf("payment type not known")
 	}
