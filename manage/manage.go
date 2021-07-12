@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/imrenagi/go-payment/subscription"
+	"github.com/midtrans/midtrans-go/coreapi"
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
-	mgo "github.com/veritrans/go-midtrans"
+	"github.com/imrenagi/go-payment/subscription"
 )
 
 // GenerateInvoiceRequest provide to generate new invoice
@@ -51,7 +51,7 @@ type FailInvoiceRequest struct {
 }
 
 // CreateSubscriptionRequest contains data for creating subscription
-type  CreateSubscriptionRequest struct {
+type CreateSubscriptionRequest struct {
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
 	Amount            float64 `json:"amount"`
@@ -167,7 +167,7 @@ type XenditProcessor interface {
 
 // MidtransProcessor callback handler for midtrans
 type MidtransProcessor interface {
-	ProcessMidtransCallback(ctx context.Context, mr mgo.Response) error
+	ProcessMidtransCallback(ctx context.Context, mr *coreapi.TransactionStatusResponse) error
 }
 
 // Payment combines all interface used for payment manager

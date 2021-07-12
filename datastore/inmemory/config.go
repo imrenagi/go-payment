@@ -95,6 +95,7 @@ func (r PaymentConfigRepository) FindByPaymentType(ctx context.Context, paymentT
 	case payment.SourceGopay,
 		payment.SourceOvo,
 		payment.SourceLinkAja,
+		payment.SourceShopeePay,
 		payment.SourceDana:
 		for _, ewallet := range r.config.EWallets {
 			if ewallet.PaymentType == paymentType {

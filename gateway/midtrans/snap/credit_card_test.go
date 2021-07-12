@@ -1,47 +1,62 @@
-package midtrans_test
+package snap_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/gateway/midtrans/snap"
 	"github.com/imrenagi/go-payment/invoice"
-
+	midsnap "github.com/midtrans/midtrans-go/snap"
 	"github.com/stretchr/testify/assert"
-
-	. "github.com/imrenagi/go-payment/gateway/midtrans"
-	gomidtrans "github.com/veritrans/go-midtrans"
 )
+
+func baseCreditCardInvoice() *invoice.Invoice {
+	date := time.Date(2020, 8, 1, 1, 0, 0, 0, time.UTC)
+	dueDate := date.Add(24 * time.Hour)
+	i := invoice.New(date, dueDate)
+
+	i.SubTotal = 5000
+	i.UpsertBillingAddress("Foo", "foo@bar.com", "0812312412")
+
+	i.SetItems(context.TODO(),
+		[]invoice.LineItem{
+			{
+				InvoiceID:    1,
+				Name:         "Terjemahan B",
+				Category:     "TRANSLATION",
+				MerchantName: "Collegos",
+				Currency:     "IDR",
+				UnitPrice:    5000,
+				Qty:          1,
+			}},
+	)
+	return i
+}
 
 func TestCreditCardWithoutInstallment(t *testing.T) {
 
-	inv := dummyInv()
+	inv := baseCreditCardInvoice()
 	inv.ServiceFee = 1000
 	inv.Payment = &invoice.Payment{
 		PaymentType: payment.SourceCreditCard,
 	}
-	builder := NewSnapRequestBuilder(inv)
-	cc, _ := NewCreditCard(builder, inv.Payment.CreditCardDetail)
-
-	req, err := cc.Build()
-	if err != nil {
-		t.Logf("expect no error, got %v", err)
-		t.Fail()
-	}
+	req, err := snap.NewCreditCard(inv)
+	assert.NoError(t, err)
 
 	assert.Len(t, req.EnabledPayments, 1)
 	assert.Equal(t, int64(6000), req.TransactionDetails.GrossAmt)
 	assert.Equal(t, 2, len(*req.Items))
-	assert.Contains(t, req.EnabledPayments, gomidtrans.SourceCreditCard)
+	assert.Contains(t, req.EnabledPayments, midsnap.PaymentTypeCreditCard)
 
 	assert.True(t, req.CreditCard.Secure)
 	assert.Equal(t, "bca", req.CreditCard.Bank)
-	assert.Equal(t, "3ds", req.CreditCard.Authentication)
-
 }
 
 func TestCreditCardWithInstallment(t *testing.T) {
 
-	inv := dummyInv()
+	inv := baseCreditCardInvoice()
 	inv.InstallmentFee = 2000
 	inv.Payment = &invoice.Payment{
 		PaymentType: payment.SourceCreditCard,
@@ -53,22 +68,14 @@ func TestCreditCardWithInstallment(t *testing.T) {
 			Bank: payment.BankBCA,
 		},
 	}
-	builder := NewSnapRequestBuilder(inv)
-	cc, _ := NewCreditCard(builder, inv.Payment.CreditCardDetail)
 
-	req, err := cc.Build()
-	if err != nil {
-		t.Logf("expect no error, got %v", err)
-		t.Fail()
-	}
-
+	req, _ := snap.NewCreditCard(inv)
 	assert.Len(t, req.EnabledPayments, 1)
 	assert.Equal(t, int64(7000), req.TransactionDetails.GrossAmt)
 	assert.Equal(t, 2, len(*req.Items))
-	assert.Contains(t, req.EnabledPayments, gomidtrans.SourceCreditCard)
+	assert.Contains(t, req.EnabledPayments, midsnap.PaymentTypeCreditCard)
 	assert.True(t, req.CreditCard.Secure)
 	assert.Equal(t, "bca", req.CreditCard.Bank)
-	assert.Equal(t, "3ds", req.CreditCard.Authentication)
 	assert.True(t, req.CreditCard.Installment.Required)
 	assert.Contains(t, req.CreditCard.Installment.Terms.Offline, int8(3))
 	assert.Empty(t, req.CreditCard.Installment.Terms.Bni)

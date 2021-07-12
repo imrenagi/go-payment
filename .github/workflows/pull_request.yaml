@@ -1,6 +1,6 @@
-name: Master Checks
+name: Running Checks on Pull Request
 on:
-  push:
+  pull_request:
     branches:
       - master
 

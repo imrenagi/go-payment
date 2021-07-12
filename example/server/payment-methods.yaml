@@ -144,7 +144,18 @@ ewallets:
         currency: "IDR"
     waiting_time:
       duration: 15
-      unit: minute                                
+      unit: minute
+  - gateway: midtrans
+    payment_type: "shopeepay"
+    display_name: "Shopee Pay"
+    admin_fee:
+      IDR:
+        val_percentage: 0
+        val_currency: 0
+        currency: "IDR"
+    waiting_time:
+      duration: 15
+      unit: minute
 cstores:
   - gateway: midtrans
     payment_type: alfamart

@@ -2,40 +2,39 @@ package midtrans
 
 import (
 	"github.com/imrenagi/go-payment"
+	"github.com/imrenagi/go-payment/gateway/midtrans/snap"
 	"github.com/imrenagi/go-payment/invoice"
-	gomidtrans "github.com/veritrans/go-midtrans"
+
+	"fmt"
+
+	midsnap "github.com/midtrans/midtrans-go/snap"
 )
 
-func NewSnapRequestFromInvoice(inv *invoice.Invoice) (*gomidtrans.SnapReq, error) {
-
-	var reqBuilder requestBuilder
-	var err error
-
-	snapRequestBuilder := NewSnapRequestBuilder(inv)
+// NewSnapFromInvoice create snap charge request
+func NewSnapFromInvoice(inv *invoice.Invoice) (*midsnap.Request, error) {
 
 	switch inv.Payment.PaymentType {
 	case payment.SourceBCAVA:
-		reqBuilder, err = NewBCAVA(snapRequestBuilder)
+		return snap.NewBCAVA(inv)
 	case payment.SourcePermataVA:
-		reqBuilder, err = NewPermataVA(snapRequestBuilder)
+		return snap.NewPermataVA(inv)
 	case payment.SourceMandiriVA:
-		reqBuilder, err = NewMandiriBill(snapRequestBuilder)
+		return snap.NewMandiriVA(inv)
 	case payment.SourceBNIVA:
-		reqBuilder, err = NewBNIVA(snapRequestBuilder)
+		return snap.NewBNIVA(inv)
 	case payment.SourceOtherVA:
-		reqBuilder, err = NewOtherBank(snapRequestBuilder)
-	case payment.SourceGopay:
-		reqBuilder, err = NewGopay(snapRequestBuilder)
+		return snap.NewOtherBankVA(inv)
 	case payment.SourceAlfamart:
-		reqBuilder, err = NewAlfamart(snapRequestBuilder)
+		return snap.NewAlfamart(inv)
 	case payment.SourceAkulaku:
-		reqBuilder, err = NewAkulaku(snapRequestBuilder)
+		return snap.NewAkulaku(inv)
+	case payment.SourceGopay:
+		return snap.NewGopay(inv)
 	case payment.SourceCreditCard:
-		reqBuilder, err = NewCreditCard(snapRequestBuilder, inv.Payment.CreditCardDetail)
+		return snap.NewCreditCard(inv)
+	case payment.SourceShopeePay:
+		return snap.NewShopeePay(inv)
+	default:
+		return nil, fmt.Errorf("payment type not known")
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	return reqBuilder.Build()
 }
