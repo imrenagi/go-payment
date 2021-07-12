@@ -5,14 +5,15 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/midtrans/midtrans-go/coreapi"
+
+	"gorm.io/gorm"
 
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
 	"github.com/imrenagi/go-payment/gateway/xendit"
 	"github.com/imrenagi/go-payment/invoice"
 	"github.com/imrenagi/go-payment/manage"
-	"gorm.io/gorm"
-	mgo "github.com/veritrans/go-midtrans"
 )
 
 func migrate(db *gorm.DB) {
@@ -156,7 +157,7 @@ func (s Server) ResumeSubscriptionHandler() http.HandlerFunc {
 func (s *Server) MidtransTransactionCallbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
-		var notification mgo.Response
+		var notification coreapi.TransactionStatusResponse
 		err := decoder.Decode(&notification)
 		if err != nil {
 			WriteFailResponse(w, http.StatusBadRequest, Error{
@@ -165,7 +166,7 @@ func (s *Server) MidtransTransactionCallbackHandler() http.HandlerFunc {
 			})
 			return
 		}
-		err = s.Manager.ProcessMidtransCallback(r.Context(), notification)
+		err = s.Manager.ProcessMidtransCallback(r.Context(), &notification)
 		if err != nil {
 			WriteFailResponseFromError(w, err)
 			return

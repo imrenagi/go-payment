@@ -148,6 +148,8 @@ github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
+github.com/veritrans/go-midtrans v0.0.0-20210616100512-16326c5eeb00 h1:iCcVFY2mUdalvtpNN0M/vcf7+OYHGKXwzG5JLZgjwQU=
+github.com/veritrans/go-midtrans v0.0.0-20210616100512-16326c5eeb00/go.mod h1:21mwYsDK+z+5kR2fvUB8n2yijZZm504Vjzk1s0rNQJg=
 github.com/xendit/xendit-go v0.4.1-0.20201006160855-28eaa35b35d5 h1:YDeZT9+vREUeVgY+B9LmS7l1ZEH+vLQ7Mm7rY1ImkuA=
 github.com/xendit/xendit-go v0.4.1-0.20201006160855-28eaa35b35d5/go.mod h1:LoyNAWrlHh68e4pguT3KmQzphY1nlQGlSRcMdzp6ARo=
 github.com/xendit/xendit-go v0.8.0 h1:2NKVSzSlLDEFZwEgrpTx8QPe4DzXKiglAhHpMJWfFbE=

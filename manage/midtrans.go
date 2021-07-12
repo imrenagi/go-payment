@@ -5,15 +5,16 @@ import (
 	"errors"
 	"time"
 
+	"github.com/midtrans/midtrans-go/coreapi"
+	"github.com/rs/zerolog"
+
 	"github.com/imrenagi/go-payment"
 	"github.com/imrenagi/go-payment/gateway/midtrans"
-	"github.com/rs/zerolog"
-	midgo "github.com/veritrans/go-midtrans"
 )
 
 // ProcessMidtransCallback takes care of notification sent by midtrans. This checks the validity of the sign key and the similarity
 // between the notification and transaction satus.
-func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response) error {
+func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr *coreapi.TransactionStatusResponse) error {
 
 	log := zerolog.Ctx(ctx).
 		With().
@@ -46,7 +47,7 @@ func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response
 		storedStatus = &midtrans.TransactionStatus{
 			StatusCode:        mr.StatusCode,
 			StatusMessage:     mr.StatusMessage,
-			SignKey:           mr.SignKey,
+			SignKey:           mr.SignatureKey,
 			Bank:              mr.Bank,
 			FraudStatus:       mr.FraudStatus,
 			PaymentType:       mr.PaymentType,
@@ -65,7 +66,7 @@ func (m *Manager) ProcessMidtransCallback(ctx context.Context, mr midgo.Response
 		storedStatus.StatusMessage = mr.StatusMessage
 		storedStatus.GrossAmount = mr.GrossAmount
 		storedStatus.FraudStatus = mr.FraudStatus
-		storedStatus.SignKey = mr.SignKey
+		storedStatus.SignKey = mr.SignatureKey
 		storedStatus.TransactionTime = transactionTime
 		storedStatus.TransactionStatus = mr.TransactionStatus
 		storedStatus.TransactionID = mr.TransactionID
