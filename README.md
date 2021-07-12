@@ -68,6 +68,7 @@ In general, this payment proxy can support payment through this following channe
 1. For simplify the query creation for database join, I use [gorm.io](https://gorm.io/) as the ORM library. 
 1. This proxy is not made for supporting all use cases available out there. It's hard requirement is just so that people can accept payment with as low effort as possible without need to worry about custom UI flow.
 1. No callback trigger at least of now once the payment manager is done procesing this request. This will be the next priority of the next release. This issue is documented [here](https://github.com/imrenagi/go-payment/issues/5)
+1. Callback or redirect URL is globally configured. This means, you cant configure callback for each request differently on the fly.
 
 ## Implemented Channels
 
@@ -79,24 +80,25 @@ This tables shows which payment channels that has been implemented by this proxy
 
 :x: : not yet supported natively by payment gateway
 
-| Channels                        | Midtrans                            | Xendit                   |
-| ------------------------------- | ----------------------------------- | ------------------------ |
-| Credit Card without installment | :white_check_mark:                  | :white_check_mark:       |
-| Credit Card with installment    | :white_check_mark:                  | :x:                      |
-| BCA VA                          | :white_check_mark:                  | :white_check_mark:       |
-| Mandiri VA                      | :white_check_mark:                  | :white_check_mark:       |
-| BNI VA                          | :white_check_mark:                  | :white_check_mark:       |
-| Permata VA                      | :white_check_mark:                  | :white_check_mark:       |
-| Other VA                        | :white_check_mark:                  | :x:                      |
-| BRI VA                          | :x:                                 | :white_check_mark:       |
-| Alfamart, Alfamidi, Dan+Dan     | :white_check_mark:                  | :white_check_mark:       |
-| QRIS                            | :white_check_mark:                  | n/a                      |
-| Gopay                           | :white_check_mark:                  | :x:                      |
-| OVO                             | :x:                                 | :white_check_mark:       |
-| DANA                            | :x:                                 | :white_check_mark:       |
-| LinkAja                         | :x:                                 | :white_check_mark:       |
-| Akulaku                         | :white_check_mark:                  | :x:                      |
-| Kredivo                         | :x:                                 | :heavy_exclamation_mark: |
+| Channels                        | Midtrans (Snap)                     | Xendit (ewallet/XenInvoice) |
+| ------------------------------- | ----------------------------------- | --------------------------- |
+| Credit Card without installment | :white_check_mark:                  | :white_check_mark:          |
+| Credit Card with installment    | :white_check_mark:                  | :x:                         |
+| BCA VA                          | :white_check_mark:                  | :white_check_mark:          |
+| Mandiri VA                      | :white_check_mark:                  | :white_check_mark:          |
+| BNI VA                          | :white_check_mark:                  | :white_check_mark:          |
+| Permata VA                      | :white_check_mark:                  | :white_check_mark:          |
+| Other VA                        | :white_check_mark:                  | :x:                         |
+| BRI VA                          | :heavy_exclamation_mark:            | :white_check_mark:          |
+| Alfamart, Alfamidi, Dan+Dan     | :white_check_mark:                  | :white_check_mark:          |
+| QRIS                            | :white_check_mark:                  | :white_check_mark:          |
+| Gopay                           | :white_check_mark:                  | :x:                         |
+| OVO                             | :x:                                 | :white_check_mark:          |
+| DANA                            | :x:                                 | :white_check_mark:          |
+| LinkAja                         | :x:                                 | :white_check_mark:          |
+| ShopeePay                       | :white_check_mark:                  | :white_check_mark:          |
+| Akulaku                         | :white_check_mark:                  | :x:                         |
+| Kredivo                         | :x:                                 | :heavy_exclamation_mark:    |
 
 ## Getting Started
 

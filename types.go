@@ -26,6 +26,7 @@ const (
 	SourceDana       PaymentType = "dana"
 	SourceLinkAja    PaymentType = "linkaja"
 	SourceShopeePay  PaymentType = "shopeepay"
+	SourceQRIS       PaymentType = "qris"
 	SourceBRIVA      PaymentType = "bri_va"
 	SourceMandiriVA  PaymentType = "mandiri_va"
 )
