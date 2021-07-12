@@ -32,6 +32,8 @@ func NewSnapFromInvoice(inv *invoice.Invoice) (*midsnap.Request, error) {
 		return snap.NewGopay(inv)
 	case payment.SourceCreditCard:
 		return snap.NewCreditCard(inv)
+	case payment.SourceShopeePay:
+		return snap.NewShopeePay(inv)
 	default:
 		return nil, fmt.Errorf("payment type not known")
 	}
