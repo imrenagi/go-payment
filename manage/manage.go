@@ -140,6 +140,18 @@ type invoiceI interface {
 
 	// FailInvoice make the invoice failed
 	FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*invoice.Invoice, error)
+
+	// MustInvoiceCreatedEventFunc set event handler for emitting invoice created event
+	MustInvoiceCreatedEventFunc(fn InvoiceEventFunc)
+
+	// MustInvoicePaidEventFunc set event handler for emitting invoice processed event
+	MustInvoicePaidEventFunc(fn InvoiceEventFunc)
+
+	// MustInvoiceProcessedEventFunc set event handler for emitting invoice processed event
+	MustInvoiceProcessedEventFunc(fn InvoiceEventFunc)
+
+	// MustInvoiceFailedEventFunc set event handler for emitting invoice failed event
+	MustInvoiceFailedEventFunc(fn InvoiceEventFunc)
 }
 
 type subscriptionI interface {

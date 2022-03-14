@@ -29,6 +29,8 @@ func NewManager(
 	}
 }
 
+type InvoiceEventFunc func(ctx context.Context, i *invoice.Invoice) error
+
 // Manager handle business logic related to payment gateway
 type Manager struct {
 	config                   localconfig.Config
@@ -38,6 +40,11 @@ type Manager struct {
 	invoiceRepository        datastore.InvoiceRepository
 	subscriptionRepository   datastore.SubscriptionRepository
 	paymentConfigRepository  datastore.PaymentConfigReader
+
+	invoiceCreatedCallback   InvoiceEventFunc
+	invoiceProcessedCallback InvoiceEventFunc
+	invoiceFailedCallback    InvoiceEventFunc
+	invoicePaidCallback      InvoiceEventFunc
 }
 
 // MapMidtransTransactionStatusRepository mapping the midtrans transaction status repository
@@ -78,12 +85,32 @@ func (m *Manager) MustPaymentConfigReader(repo datastore.PaymentConfigReader) {
 	m.paymentConfigRepository = repo
 }
 
+// MustInvoiceCreatedEventFunc set event handler for emitting invoice created event
+func (m *Manager) MustInvoiceCreatedEventFunc(fn InvoiceEventFunc) {
+	m.invoiceCreatedCallback = fn
+}
+
+// MustInvoicePaidEventFunc set event handler for emitting invoice processed event
+func (m *Manager) MustInvoicePaidEventFunc(fn InvoiceEventFunc) {
+	m.invoicePaidCallback = fn
+}
+
+// MustInvoiceProcessedEventFunc set event handler for emitting invoice processed event
+func (m *Manager) MustInvoiceProcessedEventFunc(fn InvoiceEventFunc) {
+	m.invoiceProcessedCallback = fn
+}
+
+// MustInvoiceFailedEventFunc set event handler for emitting invoice failed event
+func (m *Manager) MustInvoiceFailedEventFunc(fn InvoiceEventFunc) {
+	m.invoiceFailedCallback = fn
+}
+
 func (m Manager) charger(inv *invoice.Invoice) invoice.PaymentCharger {
 	switch payment.NewGateway(inv.Payment.Gateway) {
 	case payment.GatewayXendit:
 		return &xenditCharger{
-			config: m.config.Xendit,
-			XenditGateway:    m.xenditGateway,
+			config:        m.config.Xendit,
+			XenditGateway: m.xenditGateway,
 		}
 	case payment.GatewayMidtrans:
 		return &midtransCharger{
@@ -193,6 +220,17 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 		return nil, err
 	}
 
+	if m.invoiceCreatedCallback != nil {
+		go func() {
+			err := m.invoiceCreatedCallback(context.Background(), inv)
+			if err != nil {
+				l.Warn().
+					Err(err).
+					Msg("failed sending invoice created callback")
+			}
+		}()
+	}
+
 	l.Info().Msg("invoice is created")
 	return inv, nil
 }
@@ -224,6 +262,17 @@ func (m *Manager) PayInvoice(ctx context.Context, pir *PayInvoiceRequest) (*invo
 	err = m.invoiceRepository.Save(ctx, inv)
 	if err != nil {
 		return nil, err
+	}
+
+	if m.invoicePaidCallback != nil {
+		go func() {
+			err := m.invoicePaidCallback(context.Background(), inv)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Msg("failed sending invoice paid callback")
+			}
+		}()
 	}
 
 	log.Info().Msg("invoice paid")
@@ -258,6 +307,17 @@ func (m *Manager) ProcessInvoice(ctx context.Context, invoiceNumber string) (*in
 		return nil, err
 	}
 
+	if m.invoiceProcessedCallback != nil {
+		go func() {
+			err := m.invoiceProcessedCallback(context.Background(), inv)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Msg("failed sending invoice processed callback")
+			}
+		}()
+	}
+
 	log.Info().Msg("invoice is processed")
 	return inv, nil
 }
@@ -289,6 +349,18 @@ func (m *Manager) FailInvoice(ctx context.Context, fir *FailInvoiceRequest) (*in
 	if err != nil {
 		return nil, err
 	}
+
+	if m.invoiceFailedCallback != nil {
+		go func() {
+			err := m.invoiceFailedCallback(context.Background(), inv)
+			if err != nil {
+				log.Warn().
+					Err(err).
+					Msg("failed sending invoice failed callback")
+			}
+		}()
+	}
+
 	log.Info().Msg("invoice is failed")
 	return inv, nil
 }
