@@ -80,8 +80,8 @@ func TestNewGopay(t *testing.T) {
 				},
 				Expiry: &midsnap.ExpiryDetails{
 					StartTime: "2021-01-01 07:00:00 +0700",
-					Unit:      "hour",
-					Duration:  24,
+					Unit:      "minute",
+					Duration:  1440,
 				},
 			},
 		},

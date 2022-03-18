@@ -290,15 +290,4 @@ func TestInvoice_Publish(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Equal(t, InvoiceError{InvoiceErrorBillingAddressNotSet}, err)
 	})
-
-	t.Run("published should make invoice available for another day", func(t *testing.T) {
-		i := draftInvoice()
-
-		err := i.Publish(context.TODO())
-		assert.Nil(t, err)
-		assert.Equal(t, Published, i.State)
-
-		assert.Equal(t, 24*time.Hour, i.DueDate.Sub(i.InvoiceDate))
-
-	})
 }
