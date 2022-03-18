@@ -16,7 +16,8 @@ import (
 
 // GenerateInvoiceRequest provide to generate new invoice
 type GenerateInvoiceRequest struct {
-	Payment struct {
+	Duration time.Duration `json:"duration"`
+	Payment  struct {
 		PaymentType      payment.PaymentType       `json:"payment_type"`
 		CreditCardDetail *invoice.CreditCardDetail `json:"credit_card,omitempty"`
 	} `json:"payment"`

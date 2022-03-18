@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -171,7 +172,14 @@ func (m *Manager) GenerateInvoice(ctx context.Context, gir *GenerateInvoiceReque
 		return nil, err
 	}
 
-	inv := invoice.NewDefault()
+	dur := 24 * time.Hour
+	if gir.Duration.Nanoseconds() != 0 {
+		dur = gir.Duration
+	} else if paymentConfig.GetPaymentWaitingTime() != nil {
+		dur = *paymentConfig.GetPaymentWaitingTime()
+	}
+
+	inv := invoice.NewWithDurationLimit(dur)
 	l = l.With().
 		Str("invoice_number", inv.Number).
 		Logger()

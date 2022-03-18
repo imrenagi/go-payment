@@ -24,6 +24,13 @@ func NewDefault() *Invoice {
 	return inv
 }
 
+// NewWithDurationLimit creates new invoice with any duration
+func NewWithDurationLimit(duration time.Duration) *Invoice {
+	now := time.Now()
+	inv := New(now, now.Add(duration))
+	return inv
+}
+
 // New accept invoice start and due date and return a new invoice in a draft state.
 func New(invoiceDate, dueDate time.Time) *Invoice {
 	return &Invoice{
@@ -243,9 +250,7 @@ func (i *Invoice) SetState(state StateController) error {
 	return nil
 }
 
-// Publish checks whether payment and billing address of invoice are set. Then,
-// it reset the invoice date to the the time of this methods is used.
-// It later delegate the action to its state controller.
+// Publish checks whether payment and billing address of invoice are set.
 func (i *Invoice) Publish(ctx context.Context) error {
 
 	if i.Payment == nil {
@@ -255,11 +260,6 @@ func (i *Invoice) Publish(ctx context.Context) error {
 	if i.BillingAddress == nil {
 		return InvoiceError{InvoiceErrorBillingAddressNotSet}
 	}
-
-	now := time.Now()
-	due := now.AddDate(0, 0, 1)
-	i.InvoiceDate = now
-	i.DueDate = due
 
 	return i.GetStateController().Publish(i)
 }

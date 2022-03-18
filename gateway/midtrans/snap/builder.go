@@ -111,8 +111,8 @@ func (b *builder) setExpiration(inv *invoice.Invoice) *builder {
 	duration := inv.DueDate.Sub(inv.InvoiceDate)
 	b.req.Expiry = &snap.ExpiryDetails{
 		StartTime: invDate.Format("2006-01-02 15:04:05 -0700"),
-		Unit:      "hour",
-		Duration:  int64(math.Round(duration.Hours())),
+		Unit:      "minute",
+		Duration:  int64(math.Round(duration.Minutes())),
 	}
 	return b
 }
