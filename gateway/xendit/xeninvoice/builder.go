@@ -11,15 +11,24 @@ import (
 )
 
 func newBuilder(inv *invoice.Invoice) *builer {
-
 	var shouldSendEmail bool = true
+
+	successRedirectURL := os.Getenv("INVOICE_SUCCESS_REDIRECT_URL")
+	if inv.SuccessRedirectURL != "" {
+		successRedirectURL = inv.SuccessRedirectURL
+	}
+
+	failureRedirectURL := os.Getenv("INVOICE_FAILED_REDIRECT_URL")
+	if inv.FailureRedirectURL != "" {
+		failureRedirectURL = inv.FailureRedirectURL
+	}
 
 	b := &builer{
 		request: &xinvoice.CreateParams{
 			ExternalID:         inv.Number,
 			ShouldSendEmail:    &shouldSendEmail,
-			SuccessRedirectURL: os.Getenv("INVOICE_SUCCESS_REDIRECT_URL"),
-			FailureRedirectURL: os.Getenv("INVOICE_FAILED_REDIRECT_URL"),
+			SuccessRedirectURL: successRedirectURL,
+			FailureRedirectURL: failureRedirectURL,
 			Currency:           "IDR",
 			PaymentMethods:     make([]string, 0),
 		},
@@ -53,8 +62,8 @@ func (b *builer) SetItemDetails(inv *invoice.Invoice) *builer {
 
 	var sb strings.Builder
 	for _, item := range inv.LineItems {
-		fmt.Fprintf(&sb, "- ")
-		fmt.Fprintf(&sb, "%dx %s: %s.", item.Qty, item.Name, item.Description)
+		fmt.Fprintf(&sb, "")
+		fmt.Fprintf(&sb, "%s %s (%d package). \n", item.Name, item.Description, item.Qty)
 	}
 
 	b.request.Description = sb.String()
