@@ -5,12 +5,12 @@ go 1.17
 require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
-	github.com/midtrans/midtrans-go v1.2.1
+	github.com/midtrans/midtrans-go v1.2.2
 	github.com/rs/cors v1.7.0
 	github.com/rs/zerolog v1.18.0
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.7.0
-	github.com/xendit/xendit-go v0.8.0
+	github.com/xendit/xendit-go v1.0.7
 	gopkg.in/yaml.v2 v2.2.8
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.11
