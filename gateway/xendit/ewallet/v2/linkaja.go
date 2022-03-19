@@ -1,22 +1,27 @@
 package ewallet
 
 import (
-  "os"
+	"os"
 
-  "github.com/xendit/xendit-go/ewallet"
+	"github.com/xendit/xendit-go/ewallet"
 
-  "github.com/imrenagi/go-payment/invoice"
+	"github.com/imrenagi/go-payment/invoice"
 )
 
 // NewLinkAja is factory for LinkAja payment with xendit latest charge API
 func NewLinkAja(inv *invoice.Invoice) (*ewallet.CreateEWalletChargeParams, error) {
 
-  props := map[string]string{
-    "success_redirect_url": os.Getenv("LINKAJA_SUCCESS_REDIRECT_URL"),
-  }
+	successRedirectURL := os.Getenv("LINKAJA_SUCCESS_REDIRECT_URL")
+	if inv.SuccessRedirectURL != "" {
+		successRedirectURL = inv.SuccessRedirectURL
+	}
 
-  return newBuilder(inv).
-    SetPaymentMethod(EWalletIDLinkAja).
-    SetChannelProperties(props).
-    Build()
+	props := map[string]string{
+		"success_redirect_url": successRedirectURL,
+	}
+
+	return newBuilder(inv).
+		SetPaymentMethod(EWalletIDLinkAja).
+		SetChannelProperties(props).
+		Build()
 }

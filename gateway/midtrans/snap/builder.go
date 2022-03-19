@@ -14,17 +14,19 @@ import (
 
 func newBuilder(inv *invoice.Invoice) *builder {
 
-	callbackURL := os.Getenv("INVOICE_SUCCESS_REDIRECT_URL")
+	var callback *snap.Callbacks
+	defaultRedirectUrl := os.Getenv("INVOICE_SUCCESS_REDIRECT_URL")
+	if defaultRedirectUrl != "" {
+		callback = &snap.Callbacks{Finish: defaultRedirectUrl}
+	}
 	if inv.SuccessRedirectURL != "" {
-		callbackURL = inv.SuccessRedirectURL
+		callback = &snap.Callbacks{Finish: inv.SuccessRedirectURL}
 	}
 
 	srb := &builder{
 		req: &snap.Request{
-			Items: &[]midtrans.ItemDetails{},
-			Callbacks: &snap.Callbacks{
-				Finish: callbackURL,
-			},
+			Items:     &[]midtrans.ItemDetails{},
+			Callbacks: callback,
 		},
 	}
 
