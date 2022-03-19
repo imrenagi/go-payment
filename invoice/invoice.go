@@ -46,23 +46,25 @@ func New(invoiceDate, dueDate time.Time) *Invoice {
 // Invoice ...
 type Invoice struct {
 	payment.Model
-	Title           string          `json:"-"`
-	Number          string          `json:"number" gorm:"unique_index:inv_number_k"`
-	InvoiceDate     time.Time       `json:"invoice_date"`
-	DueDate         time.Time       `json:"due_date"`
-	PaidAt          *time.Time      `json:"paid_at"`
-	Currency        string          `json:"-"`
-	SubTotal        float64         `json:"-"`
-	Discount        float64         `json:"-"`
-	Tax             float64         `json:"-"`
-	ServiceFee      float64         `json:"-"`
-	InstallmentFee  float64         `json:"-"`
-	State           State           `json:"-"`
-	StateController StateController `json:"-" gorm:"-"`
-	LineItems       []LineItem      `json:"items"`
-	Payment         *Payment        `json:"payment" gorm:"ForeignKey:InvoiceID"`
-	BillingAddress  *BillingAddress `json:"billing_address" gorm:"ForeignKey:InvoiceID"`
-	SubscriptionID  *uint64         `json:"-" gorm:"sql:index;"`
+	Title              string          `json:"-"`
+	Number             string          `json:"number" gorm:"unique_index:inv_number_k"`
+	InvoiceDate        time.Time       `json:"invoice_date"`
+	DueDate            time.Time       `json:"due_date"`
+	PaidAt             *time.Time      `json:"paid_at"`
+	Currency           string          `json:"-"`
+	SubTotal           float64         `json:"-"`
+	Discount           float64         `json:"-"`
+	Tax                float64         `json:"-"`
+	ServiceFee         float64         `json:"-"`
+	InstallmentFee     float64         `json:"-"`
+	State              State           `json:"-"`
+	StateController    StateController `json:"-" gorm:"-"`
+	LineItems          []LineItem      `json:"items"`
+	Payment            *Payment        `json:"payment" gorm:"ForeignKey:InvoiceID"`
+	BillingAddress     *BillingAddress `json:"billing_address" gorm:"ForeignKey:InvoiceID"`
+	SubscriptionID     *uint64         `json:"-" gorm:"sql:index;"`
+	SuccessRedirectURL string          `json:"success_redirect_url"`
+	FailureRedirectURL string          `json:"failure_redirect_url"`
 }
 
 // GetTitle ...

@@ -35,6 +35,10 @@ type GenerateInvoiceRequest struct {
 		Price        float64 `json:"price"`
 		Currency     string  `json:"currency"`
 	} `json:"items"`
+	Callback *struct {
+		SuccessRedirectURL string `json:"success_redirect_url"`
+		FailureRedirectURL string `json:"failure_redirect_url"`
+	} `json:"callback"`
 }
 
 // PayInvoiceRequest provide information which invoice to pay and by using what

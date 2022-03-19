@@ -3,6 +3,7 @@ package snap
 import (
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	"github.com/midtrans/midtrans-go"
@@ -12,9 +13,18 @@ import (
 )
 
 func newBuilder(inv *invoice.Invoice) *builder {
+
+	callbackURL := os.Getenv("INVOICE_SUCCESS_REDIRECT_URL")
+	if inv.SuccessRedirectURL != "" {
+		callbackURL = inv.SuccessRedirectURL
+	}
+
 	srb := &builder{
 		req: &snap.Request{
 			Items: &[]midtrans.ItemDetails{},
+			Callbacks: &snap.Callbacks{
+				Finish: callbackURL,
+			},
 		},
 	}
 
