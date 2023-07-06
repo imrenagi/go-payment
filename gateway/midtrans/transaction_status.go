@@ -35,7 +35,7 @@ type TransactionStatus struct {
 
 // TableName returns the gorm table name
 func (TransactionStatus) TableName() string {
-	return "midtrans_transaction_status"
+	return "goldfish_midtrans_transaction_status"
 }
 
 // IsValid checks whether the status sent is indeed sent by midtrans by validating the

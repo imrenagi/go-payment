@@ -64,7 +64,7 @@ func (p *Payment) Reset() error {
 }
 
 func (Payment) TableName() string {
-	return "invoice_payment_info"
+	return "goldfish_invoice_payment_info"
 }
 
 type CreditCardDetail struct {
@@ -80,5 +80,5 @@ type Installment struct {
 }
 
 func (CreditCardDetail) TableName() string {
-	return "invoice_payment_cc_details"
+	return "goldfish_invoice_payment_cc_details"
 }

@@ -64,7 +64,7 @@ type LineItem struct {
 }
 
 func (LineItem) TableName() string {
-	return "invoice_line_items"
+	return "goldfish_invoice_line_items"
 }
 
 // IncreaseQty ...

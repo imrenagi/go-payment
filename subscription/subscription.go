@@ -50,6 +50,10 @@ type Subscription struct {
 	Status             Status `json:"-"`
 }
 
+func (s *Subscription) TableName() string {
+	return "goldfish_subscription"
+}
+
 // MarshalJSON ...
 func (s *Subscription) MarshalJSON() ([]byte, error) {
 	type Alias Subscription
@@ -174,6 +178,10 @@ type Schedule struct {
 	StartAt             *time.Time   `json:"start_at"`
 	PreviousExecutionAt *time.Time   `json:"previous_execution_at"`
 	NextExecutionAt     *time.Time   `json:"next_execution_at"`
+}
+
+func (s *Schedule) TableName() string {
+	return "goldfish_schedules"
 }
 
 // NextSince ...

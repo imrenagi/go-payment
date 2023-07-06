@@ -211,7 +211,7 @@ func (i *Invoice) CreateChargeRequest(ctx context.Context, charger PaymentCharge
 
 // TableName returns the table name used for gorm
 func (Invoice) TableName() string {
-	return "invoices"
+	return "goldfish_invoices"
 }
 
 // SetItems set the informations of the invoice item

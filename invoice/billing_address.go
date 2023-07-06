@@ -76,5 +76,5 @@ func (b *BillingAddress) setPhoneNumber(number string) error {
 }
 
 func (BillingAddress) TableName() string {
-	return "invoice_billing_addresses"
+	return "goldfish_invoice_billing_addresses"
 }

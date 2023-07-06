@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"github.com/rs/zerolog/log"
@@ -21,37 +24,49 @@ import (
 )
 
 func main() {
-
-	config, err := localconfig.LoadConfig("example/server/config.yaml")
+	config, err := localconfig.LoadConfig("./config.yaml")
 	if err != nil {
 		panic(err)
 	}
 
-	secret, err := localconfig.LoadSecret("example/server/secret.yaml")
+	secret, err := localconfig.LoadSecret("./secret.yaml")
 	if err != nil {
 		panic(err)
 	}
 
-	db, err := gorm.Open(sqlite.Open("example/server/gorm.db"), &gorm.Config{})
+	var dbDriver gorm.Dialector
+	if secret.DB.Driver == "mysql" {
+		access := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local", secret.DB.UserName, secret.DB.Password, secret.DB.Host, secret.DB.Port, secret.DB.DBName)
+		dbDriver = mysql.Open(access)
+	} else if secret.DB.Driver == "postgres" {
+		dbDriver = postgres.Open(fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s", secret.DB.Host, secret.DB.UserName, secret.DB.Password, secret.DB.DBName, secret.DB.Port, secret.DB.Timezone)) // DSN postgres
+	} else if secret.DB.Driver == "sqlite" {
+		dbDriver = sqlite.Open("./gorm.db")
+	} else { // no database driver provided
+		log.Fatal().Msg("Can't connect to database Server")
+	}
+
+	db, err := gorm.Open(dbDriver, &gorm.Config{})
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
+
 	db.AutoMigrate(
 		&midtrans.TransactionStatus{},
+		&subscription.Subscription{},
+		&subscription.Schedule{},
 		&invoice.Invoice{},
 		&invoice.Payment{},
 		&invoice.CreditCardDetail{},
 		&invoice.LineItem{},
 		&invoice.BillingAddress{},
-		&subscription.Subscription{},
-		&subscription.Schedule{},
 	)
 
 	m := manage.NewManager(*config, secret.Payment)
 	m.MustMidtransTransactionStatusRepository(dssql.NewMidtransTransactionRepository(db))
 	m.MustInvoiceRepository(dssql.NewInvoiceRepository(db))
 	m.MustSubscriptionRepository(dssql.NewSubscriptionRepository(db))
-	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("example/server/payment-methods.yaml"))
+	m.MustPaymentConfigReader(inmemory.NewPaymentConfigRepository("./payment-methods.yaml"))
 
 	srv := srv{
 		Router:     mux.NewRouter(),
@@ -59,7 +74,7 @@ func main() {
 	}
 	srv.routes()
 
-	if err := http.ListenAndServe(":8080", srv.GetHandler()); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", secret.Setting.RunningPort), srv.GetHandler()); err != nil {
 		log.Fatal().Msgf("Server can't run. Got: `%v`", err)
 	}
 }

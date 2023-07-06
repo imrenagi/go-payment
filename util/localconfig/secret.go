@@ -12,17 +12,25 @@ import (
 
 // Secret used to keep App Secret.
 type Secret struct {
+	Setting SettingSecret `yaml:"setting"`
 	DB      DBCredential  `yaml:"db"`
 	Payment PaymentSecret `yaml:"payment"`
 }
 
+// SettingSecret stores config setting on secret yaml
+type SettingSecret struct {
+	RunningPort string `yaml:"runningPort"`
+}
+
 // DBCredential stores database credential
 type DBCredential struct {
+	Driver   string `yaml:"driver"`
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	UserName string `yaml:"username"`
 	Password string `yaml:"password"`
 	DBName   string `yaml:"dbname"`
+	Timezone string `yaml:"timezone"`
 }
 
 // PaymentSecret stores secret for payment gateway
@@ -55,7 +63,6 @@ func LoadSecretFromBytes(data []byte) (*Secret, error) {
 	fang.AutomaticEnv()
 	fang.SetEnvPrefix("GOPAYMENT")
 	fang.SetConfigType("yaml")
-	
 
 	if err := fang.ReadConfig(bytes.NewBuffer(data)); err != nil {
 		return nil, err
